@@ -26,11 +26,11 @@ class StressFactors(models.Model):
 
 class JobSatisfaction(models.Model):
     id = models.BigAutoField(help_text="JobSatisfaction pk", primary_key=True)
-    participant_id = models.ForeignKey(BasicInfo, on_delete=models.CASCADE, verbose_name="BasicInfo pk")
+    participant_id = models.ForeignKey(BasicInfo, on_delete=models.CASCADE, verbose_name="BasicInfo pk",
+                                       related_name='job_satisfaction_set')
     satisfaction_level = models.FloatField(validators=[MinValueValidator(1), MaxValueValidator(5)],
-                                             verbose_name="업무 만족도")
-    stress_factors = models.ManyToManyField(StressFactors, through="JobSatisfactionStressFactors",
-                                           related_name="exercise_type")
+                                           verbose_name="업무 만족도")
+    stress_factors = models.ManyToManyField(StressFactors, through="JobSatisfactionStressFactors")
 
     def save(self, *args, **kwargs):
         with transaction.atomic():
@@ -50,15 +50,16 @@ class JobSatisfaction(models.Model):
 class JobSatisfactionStressFactors(models.Model):
     id = models.BigAutoField(help_text="JobSatisfactionStressFactors pk", primary_key=True)
     job_satisfaction = models.ForeignKey(JobSatisfaction, on_delete=models.CASCADE,
-                                         related_name="job_satisfaction_relations")
+                                         related_name='job_satisfaction_stress_factors_set')
     stress_factors = models.ForeignKey(StressFactors, on_delete=models.DO_NOTHING,
-                                       related_name="stress_factors_relations")
+                                       related_name="job_satisfaction_stress_factors_set")
     input_text = models.TextField(verbose_name="입력 문자열", null=True)
 
 
 class SleepHealth(models.Model):
     id = models.BigAutoField(help_text="SleepHealth pk", primary_key=True)
-    participant_id = models.ForeignKey(BasicInfo, on_delete=models.CASCADE, verbose_name="BasicInfo pk")
+    participant_id = models.ForeignKey(BasicInfo, on_delete=models.CASCADE, verbose_name="BasicInfo pk",
+                                       related_name='sleep_health_set')
     result_1 = models.TimeField(verbose_name="수면 시작 시각")
     result_2 = models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(1440)],
                                    verbose_name="수면 까지 걸리는 시간(분)")
@@ -85,7 +86,8 @@ class SleepHealth(models.Model):
 
 class GeneralHealth(models.Model):
     id = models.BigAutoField(help_text="GeneralHealth pk", primary_key=True)
-    participant_id = models.ForeignKey(BasicInfo, on_delete=models.CASCADE, verbose_name="BasicInfo pk")
+    participant_id = models.ForeignKey(BasicInfo, on_delete=models.CASCADE, verbose_name="BasicInfo pk",
+                                       related_name='general_health_set')
     result_1 = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)], verbose_name="1번 문항")
     result_2 = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)], verbose_name="2번 문항")
     result_3 = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)], verbose_name="3번 문항")
@@ -105,7 +107,8 @@ class GeneralHealth(models.Model):
 
 class Emotion(models.Model):
     id = models.BigAutoField(help_text="Emotion pk", primary_key=True)
-    participant_id = models.ForeignKey(BasicInfo, on_delete=models.CASCADE, verbose_name="BasicInfo pk")
+    participant_id = models.ForeignKey(BasicInfo, on_delete=models.CASCADE, verbose_name="BasicInfo pk",
+                                       related_name='emotion_set')
     result_1 = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(4)], verbose_name="1번 문항")
     result_2 = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(4)], verbose_name="2번 문항")
     result_3 = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(4)], verbose_name="3번 문항")
@@ -131,7 +134,8 @@ class Emotion(models.Model):
 
 class Loneliness(models.Model):
     id = models.BigAutoField(help_text="Loneliness pk", primary_key=True),
-    participant_id = models.ForeignKey(BasicInfo, on_delete=models.CASCADE, verbose_name="BasicInfo pk")
+    participant_id = models.ForeignKey(BasicInfo, on_delete=models.CASCADE, verbose_name="BasicInfo pk",
+                                       related_name='loneliness_set')
     result_1 = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(4)], verbose_name="1번 문항")
     result_2 = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(4)], verbose_name="2번 문항")
     result_3 = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(4)], verbose_name="3번 문항")

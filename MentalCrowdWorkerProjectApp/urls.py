@@ -17,7 +17,31 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
+from MentalCrowdWorkerProjectApp.views import BasicInfoAPIView, StressFactorsAPIView, JobSatisfactionAPIView, \
+    JobSatisfactionStressFactorsAPIView, SleepHealthAPIView, GeneralHealthAPIView, EmotionAPIView, LonelinessAPIView
+
 urlpatterns = [
-    path("admin/", admin.site.urls),
-    path("api-auth/", include('rest_framework.urls'))
+    path("app_get_basic_info/", BasicInfoAPIView.as_view(), name='get'),
+    path("app_get_basic_info/id/<int:id>/", BasicInfoAPIView.as_view(), name='post'),
+
+    path("app_get_stress_factors/", StressFactorsAPIView.as_view(), name='get'),
+
+    path("app_get_job_satisfaction/", JobSatisfactionAPIView.as_view(), name='get'),
+    path("app_get_job_satisfaction/id/<int:id>/", JobSatisfactionAPIView.as_view(), name='post'),
+
+    path("app_get_job_satisfaction_stress_factors/", JobSatisfactionStressFactorsAPIView.as_view(), name='get'),
+    path("app_get_job_satisfaction_stress_factors/id/<int:id>/",
+         JobSatisfactionStressFactorsAPIView.as_view(), name='post'),
+
+    path("app_get_sleep_health/", SleepHealthAPIView.as_view(), name='get'),
+    path("app_get_sleep_health/id/<int:id>/", SleepHealthAPIView.as_view(), name='post'),
+
+    path("app_get_general_health/", GeneralHealthAPIView.as_view(), name='get'),
+    path("app_get_general_health/id/<int:id>/", GeneralHealthAPIView.as_view(), name='post'),
+
+    path("app_get_emotion/", EmotionAPIView.as_view(), name='get'),
+    path("app_get_emotion/id/<int:id>/", EmotionAPIView.as_view(), name='post'),
+
+    path("app_get_loneliness/", LonelinessAPIView.as_view(), name='get'),
+    path("app_get_loneliness/id/<int:id>/", LonelinessAPIView.as_view(), name='post'),
 ]
