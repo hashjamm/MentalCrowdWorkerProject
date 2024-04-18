@@ -5,9 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="e64c9605-b7ea-451f-9ebf-3143d7e0262a" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/MentalCrowdWorkerProject/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/MentalCrowdWorkerProject/settings.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MentalCrowdWorkerProjectApp/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/MentalCrowdWorkerProjectApp/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MentalCrowdWorkerProjectApp/serializers.py" beforeDir="false" afterPath="$PROJECT_DIR$/MentalCrowdWorkerProjectApp/serializers.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/MentalCrowdWorkerProjectApp/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/MentalCrowdWorkerProjectApp/urls.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/MentalCrowdWorkerProjectApp/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/MentalCrowdWorkerProjectApp/views.py" afterDir="false" />
     </list>
@@ -15,6 +13,9 @@
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="DjangoConsoleOptions" custom-start-script="import sys; print('Python %s on %s' % (sys.version, sys.platform))&#10;import django; print('Django %s' % django.get_version())&#10;sys.path.extend([WORKING_DIR_AND_PYTHON_PATHS])&#10;if 'setup' in dir(django): django.setup()&#10;import django_manage_shell; django_manage_shell.run(PROJECT_ROOT)">
+    <option name="myCustomStartScript" value="import sys; print('Python %s on %s' % (sys.version, sys.platform))&#10;import django; print('Django %s' % django.get_version())&#10;sys.path.extend([WORKING_DIR_AND_PYTHON_PATHS])&#10;if 'setup' in dir(django): django.setup()&#10;import django_manage_shell; django_manage_shell.run(PROJECT_ROOT)" />
   </component>
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
@@ -34,20 +35,20 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "WebServerToolWindowFactoryState": "false",
-    "git-widget-placeholder": "master",
-    "last_opened_file_path": "C:/Users/HashJam/PycharmProjects/MentalCrowdWorkerProject",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/HashJam/PycharmProjects/MentalCrowdWorkerProject&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\HashJam\PycharmProjects\MentalCrowdWorkerProject" />
@@ -92,6 +93,10 @@
       <workItem from="1710204591764" duration="975000" />
       <workItem from="1710290349575" duration="10118000" />
       <workItem from="1710380097430" duration="52238000" />
+      <workItem from="1710693975598" duration="4883000" />
+      <workItem from="1710995666469" duration="1787000" />
+      <workItem from="1711349183505" duration="1196000" />
+      <workItem from="1712815043684" duration="32880000" />
     </task>
     <servers />
   </component>
