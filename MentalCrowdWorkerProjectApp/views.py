@@ -13,7 +13,7 @@ from MentalCrowdWorkerProjectApp.models import BasicInfo, StressFactors, JobSati
     SleepHealth, GeneralHealth, Emotion, Loneliness
 from MentalCrowdWorkerProjectApp.serializers import BasicInfoSerializer, StressFactorsSerializer, \
     JobSatisfactionSerializer, JobSatisfactionStressFactorsSerializer, SleepHealthSerializer, GeneralHealthSerializer, \
-    EmotionSerializer, LonelinessSerializer
+    EmotionSerializer, LonelinessSerializer, PSQISerializer, WHODASSerializer, DASS21Serializer
 
 
 # Create your views here.
@@ -220,7 +220,7 @@ class SleepHealthAPIView(APIView):
     @csrf_exempt
     def post(self, request):
 
-        serialized_data = SleepHealthSerializer(data=request.data)
+        serialized_data = PSQISerializer(data=request.data)
 
         if serialized_data.is_valid():
 
@@ -335,15 +335,72 @@ class GeneralHealthAPIView(APIView):
             return self.get_personal_general_health(request, user_id)
 
     @csrf_exempt
-    def get_whole_general_health(self, request):
+    def post(self, request):
 
-        queryset = GeneralHealth.objects.all()
+        serialized_data = WHODASSerializer(data=request.data)
+
+        if serialized_data.is_valid():
+
+            # instance = serialized_data.create(serialized_data.validated_data)
+
+            instance = GeneralHealth(**serialized_data.validated_data)
+            input_data = [instance]
+            result = GeneralHealthAPIView.evaluate_general_health(input_data)
+
+            keys_to_extract = ['raw_whodas_k', 'standardized_whodas_k', 'status']
+
+            sub_dict = {key: result[0][key] for key in keys_to_extract if key in result[0]}
+
+            return Response(sub_dict, status=status.HTTP_200_OK)
+
+        else:
+            print(serialized_data.errors)
+
+            return Response(serialized_data.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @staticmethod
+    def evaluate_general_health(records):
+        result_list = []
+        for one_record in records:
+            # Define scoring conditions
+            # c1: 인지, c2: 이동성, c3: 자기 관리, c4: 대인 관계, c5: 생활 활동, c6: 사회 참여
+            c1 = (one_record.result_1 + one_record.result_2) / 2
+            c2 = (one_record.result_3 + one_record.result_4) / 2
+            c3 = (one_record.result_5 + one_record.result_6) / 2
+            c4 = (one_record.result_7 + one_record.result_8) / 2
+            c5 = (one_record.result_9 + one_record.result_10) / 2
+            c6 = (one_record.result_11 + one_record.result_12) / 2
+
+            raw_whodas_k = c1 + c2 + c3 + c4 + c5 + c6
+            standardized_whodas_k = round(100 * (raw_whodas_k - 6) / (30 - 6), 2)
+
+            if 0 <= standardized_whodas_k < 5:
+                status = "None"
+            elif 5 <= standardized_whodas_k < 25:
+                status = "Mild"
+            elif 25 <= standardized_whodas_k < 50:
+                status = "Moderate"
+            elif 50 <= standardized_whodas_k < 96:
+                status = "Severe"
+            else:
+                status = "Extreme"
+
+            record_dict = model_to_dict(one_record)
+            record_dict['raw_whodas_k'] = raw_whodas_k
+            record_dict['standardized_whodas_k'] = standardized_whodas_k
+            record_dict['status'] = status
+            result_list.append(record_dict)
+
+        return result_list
+
+    @csrf_exempt
+    def get_whole_general_health(self, request):
 
         try:
 
-            serializer = GeneralHealthSerializer(queryset, many=True)
-
-            return Response(serializer.data)
+            queryset = GeneralHealth.objects.all()
+            result_list = GeneralHealthAPIView.evaluate_general_health(queryset)
+            return Response(result_list)
 
         except GeneralHealth.DoesNotExist:
 
@@ -356,10 +413,8 @@ class GeneralHealthAPIView(APIView):
 
             basic_info = BasicInfo.objects.get(id=user_id)
             queryset = basic_info.general_health_set.all()
-
-            serialized_data = GeneralHealthSerializer(queryset, many=True).data
-
-            return Response(serialized_data)
+            result_list = GeneralHealthAPIView.evaluate_general_health(queryset)
+            return Response(result_list)
 
         except BasicInfo.DoesNotExist:
 
@@ -388,15 +443,99 @@ class EmotionAPIView(APIView):
             return self.get_personal_emotion(request, user_id)
 
     @csrf_exempt
-    def get_whole_emotion(self, request):
+    def post(self, request):
 
-        queryset = Emotion.objects.all()
+        serialized_data = DASS21Serializer(data=request.data)
+
+        if serialized_data.is_valid():
+
+            # instance = serialized_data.create(serialized_data.validated_data)
+
+            instance = Emotion(**serialized_data.validated_data)
+            input_data = [instance]
+            result = EmotionAPIView.evaluate_emotion(input_data)
+
+            keys_to_extract = ['depression_scale', 'depression_status', 'anxiety_scale', 'anxiety_status',
+                               'stress_scale', 'stress_status']
+
+            sub_dict = {key: result[0][key] for key in keys_to_extract if key in result[0]}
+
+            return Response(sub_dict, status=status.HTTP_200_OK)
+
+        else:
+            print(serialized_data.errors)
+
+            return Response(serialized_data.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @staticmethod
+    def evaluate_emotion(records):
+        result_list = []
+        for one_record in records:
+            # Define scoring conditions
+            # c1: Depression Scale, c2: Anxiety Scale, c3: Stress Scale
+            c1_list = [one_record.result_3, one_record.result_5, one_record.result_10, one_record.result_13,
+                       one_record.result_16, one_record.result_17, one_record.result_21]
+            c2_list = [one_record.result_2, one_record.result_4, one_record.result_7, one_record.result_9,
+                       one_record.result_15, one_record.result_19, one_record.result_20]
+            c3_list = [one_record.result_1, one_record.result_6, one_record.result_8, one_record.result_11,
+                       one_record.result_12, one_record.result_14, one_record.result_18]
+
+            c1 = sum(c1_list) - len(c1_list)
+            c2 = sum(c2_list) - len(c2_list)
+            c3 = sum(c3_list) - len(c3_list)
+
+            if 0 <= c1 < 5:
+                c1_status = "Normal"
+            elif 5 <= c1 < 7:
+                c1_status = "Mild"
+            elif 7 <= c1 < 11:
+                c1_status = "Moderate"
+            elif 11 <= c1 < 14:
+                c1_status = "Severe"
+            else:
+                c1_status = "Extreme"
+
+            if 0 <= c2 < 4:
+                c2_status = "Normal"
+            elif 4 <= c2 < 6:
+                c2_status = "Mild"
+            elif 6 <= c2 < 8:
+                c2_status = "Moderate"
+            elif 8 <= c2 < 10:
+                c2_status = "Severe"
+            else:
+                c2_status = "Extreme"
+
+            if 0 <= c3 < 8:
+                c3_status = "Normal"
+            elif 8 <= c3 < 10:
+                c3_status = "Mild"
+            elif 10 <= c3 < 13:
+                c3_status = "Moderate"
+            elif 13 <= c3 < 17:
+                c3_status = "Severe"
+            else:
+                c3_status = "Extreme"
+
+            record_dict = model_to_dict(one_record)
+            record_dict['depression_scale'] = c1
+            record_dict['depression_status'] = c1_status
+            record_dict['anxiety_scale'] = c2
+            record_dict['anxiety_status'] = c2_status
+            record_dict['stress_scale'] = c3
+            record_dict['stress_status'] = c3_status
+            result_list.append(record_dict)
+
+        return result_list
+
+    @csrf_exempt
+    def get_whole_emotion(self, request):
 
         try:
 
-            serializer = EmotionSerializer(queryset, many=True)
-
-            return Response(serializer.data)
+            queryset = Emotion.objects.all()
+            result_list = EmotionAPIView.evaluate_emotion(queryset)
+            return Response(result_list)
 
         except Emotion.DoesNotExist:
 
@@ -409,10 +548,8 @@ class EmotionAPIView(APIView):
 
             basic_info = BasicInfo.objects.get(id=user_id)
             queryset = basic_info.emotion_set.all()
-
-            serialized_data = EmotionSerializer(queryset, many=True).data
-
-            return Response(serialized_data)
+            result_list = EmotionAPIView.evaluate_emotion(queryset)
+            return Response(result_list)
 
         except BasicInfo.DoesNotExist:
 
