@@ -12,8 +12,8 @@ from rest_framework.views import APIView
 from MentalCrowdWorkerProjectApp.models import BasicInfo, StressFactors, JobSatisfaction, JobSatisfactionStressFactors, \
     SleepHealth, GeneralHealth, Emotion, Loneliness
 from MentalCrowdWorkerProjectApp.serializers import BasicInfoSerializer, StressFactorsSerializer, \
-    JobSatisfactionSerializer, JobSatisfactionStressFactorsSerializer, SleepHealthSerializer, GeneralHealthSerializer, \
-    EmotionSerializer, LonelinessSerializer, PSQISerializer, WHODASSerializer, DASS21Serializer
+    JobSatisfactionSerializer, JobSatisfactionStressFactorsSerializer, PSQISerializer, WHODASSerializer, \
+    DASS21Serializer, LSISSerializer
 
 
 # Create your views here.
@@ -246,9 +246,9 @@ class SleepHealthAPIView(APIView):
         result_list = []
         for one_record in records:
             # Define scoring conditions
-            c1 = one_record.result_6
-            c2_element_1 = 3 if one_record.result_2 >= 61 else 2 if one_record.result_2 >= 31 else 1 if one_record.result_2 >= 16 else 0
-            pre_c2 = c2_element_1 + one_record.result_5a
+            c1 = (one_record.result_6 - 1)
+            c2_element_1 = 3 if one_record.result_2 >= 60 else 2 if one_record.result_2 >= 30 else 1 if one_record.result_2 >= 15 else 0
+            pre_c2 = c2_element_1 + (one_record.result_5a - 1)
             c2 = 3 if pre_c2 >= 5 else 2 if pre_c2 >= 3 else 1 if pre_c2 >= 1 else 0
 
             if one_record.result_4 < 300:
@@ -261,26 +261,48 @@ class SleepHealthAPIView(APIView):
                 c3 = 0
 
             arbitrary_day = datetime.datetime.today().date()
-            datetime_result_3 = datetime.datetime.combine(arbitrary_day, one_record.result_3)
+            # 하나의 하루를 추가합니다.
+            next_day = arbitrary_day + datetime.timedelta(days=1)
+
+            datetime_result_3 = datetime.datetime.combine(next_day, one_record.result_3)
             datetime_result_1 = datetime.datetime.combine(arbitrary_day, one_record.result_1)
             pre_c4 = (one_record.result_4 / ((datetime_result_3 - datetime_result_1).total_seconds() / 60)) * 100
             c4 = 3 if pre_c4 < 65 else 2 if pre_c4 < 75 else 1 if pre_c4 < 85 else 0
 
             pre_c5 = sum([one_record.result_5b, one_record.result_5c, one_record.result_5d, one_record.result_5e,
                           one_record.result_5f, one_record.result_5g, one_record.result_5h, one_record.result_5i,
-                          one_record.result_5j])
+                          one_record.result_5j]) - 9
             c5 = 3 if pre_c5 > 18 else 2 if pre_c5 > 9 else 1 if pre_c5 > 0 else 0
 
-            c6 = one_record.result_7
-            pre_c7 = one_record.result_8 + one_record.result_9
-            c7 = 3 if pre_c7 > 5 else 2 if pre_c7 > 3 else 1 if pre_c7 > 1 else 0
+            c6 = (one_record.result_7 - 1)
+            pre_c7 = (one_record.result_8 - 1) + (one_record.result_9 - 1)
+            c7 = 3 if pre_c7 > 4 else 2 if pre_c7 > 2 else 1 if pre_c7 > 0 else 0
 
             psqi_k = sum([c1, c2, c3, c4, c5, c6, c7])
-            status = "disordered" if psqi_k > 10 else "disturbed" if psqi_k > 4 else "normal"
+
+            status = "수면 장애" if psqi_k > 10 else "수면은 하고있으나 숙면을 취하지 못하는 상태" if psqi_k > 4 else "숙면"
 
             record_dict = model_to_dict(one_record)
             record_dict['psqi_k'] = psqi_k
             record_dict['status'] = status
+
+            # 주희쌤께서 전달 주신 각 세부 항목별 점수에 대한 상태 기준에 따름. 공인된 것인지는 모르겠음
+            c1_status = "나쁨" if c1 >= 2 else "좋음"
+            c2_status = "길다" if c2 >= 5 else "조금 길다" if c2 >= 3 else "무난"
+            c3_status = "짧음" if c3 >= 3 else "적당" if c3 >= 1 else "충분"
+            c4_status = "나쁨" if c4 >= 3 else "중간" if c3 >= 2 else "좋음"
+            c5_status = "매우 있음" if c5 >= 3 else "있음" if c5 >= 2 else "없음"
+            c6_status = "주당 3회 이상" if c6 == 3 else "주당 2회" if c6 == 2 else "주당 1회" if c6 == 1 else "없음"
+            c7_status = "문제 있음" if c7 >= 2 else "문제 없음"
+
+            record_dict['sleep_quality'] = c1_status
+            record_dict['sleep_latency'] = c2_status
+            record_dict['sleep_duration'] = c3_status
+            record_dict['sleep_efficiency'] = c4_status
+            record_dict['sleep_disturbance'] = c5_status
+            record_dict['use_of_sleep_medication'] = c6_status
+            record_dict['daytime_dysfunction'] = c7_status
+
             result_list.append(record_dict)
 
         return result_list
@@ -364,31 +386,43 @@ class GeneralHealthAPIView(APIView):
         for one_record in records:
             # Define scoring conditions
             # c1: 인지, c2: 이동성, c3: 자기 관리, c4: 대인 관계, c5: 생활 활동, c6: 사회 참여
-            c1 = (one_record.result_1 + one_record.result_2) / 2
-            c2 = (one_record.result_3 + one_record.result_4) / 2
-            c3 = (one_record.result_5 + one_record.result_6) / 2
-            c4 = (one_record.result_7 + one_record.result_8) / 2
-            c5 = (one_record.result_9 + one_record.result_10) / 2
-            c6 = (one_record.result_11 + one_record.result_12) / 2
+            c1 = (one_record.result_3 + one_record.result_6) / 2
+            c2 = (one_record.result_1 + one_record.result_7) / 2
+            c3 = (one_record.result_8 + one_record.result_9) / 2
+            c4 = (one_record.result_10 + one_record.result_11) / 2
+            c5 = (one_record.result_2 + one_record.result_12) / 2
+            c6 = (one_record.result_4 + one_record.result_5) / 2
 
-            raw_whodas_k = c1 + c2 + c3 + c4 + c5 + c6
-            standardized_whodas_k = round(100 * (raw_whodas_k - 6) / (30 - 6), 2)
+            whodas_k = 100 * ((c1 + c2 + c3 + c4 + c5 + c6) * 2 - 12) / 48
 
-            if 0 <= standardized_whodas_k < 5:
-                status = "None"
-            elif 5 <= standardized_whodas_k < 25:
-                status = "Mild"
-            elif 25 <= standardized_whodas_k < 50:
-                status = "Moderate"
-            elif 50 <= standardized_whodas_k < 96:
-                status = "Severe"
-            else:
-                status = "Extreme"
+            status = "건강기능 매우 양호" if whodas_k < 1\
+                else "건강기능 다소 양호" if whodas_k < 3 \
+                else "약간의 건강기능 주의" if whodas_k < 7 \
+                else "건강기능 주의요망" if whodas_k < 13 \
+                else "건강기능 어려움" if whodas_k < 23\
+                else "건강기능 문제보임" if whodas_k < 42\
+                else "건강기능 장애" if whodas_k < 71 \
+                else "건강기능 심각한 장애"
 
             record_dict = model_to_dict(one_record)
-            record_dict['raw_whodas_k'] = raw_whodas_k
-            record_dict['standardized_whodas_k'] = standardized_whodas_k
+            record_dict['whodas_k'] = whodas_k
             record_dict['status'] = status
+
+            # 주희쌤께서 전달 주신 각 세부 항목별 점수에 대한 상태 기준에 따름. 공인된 것인지는 모르겠음
+            c1_status = "None" if c1 < 2 else "Mild" if c1 == 2 else "Moderate" if c1 == 3 else "Severe"
+            c2_status = "None" if c1 < 2 else "Mild" if c1 == 2 else "Moderate" if c1 == 3 else "Severe"
+            c3_status = "None" if c1 < 2 else "Mild" if c1 == 2 else "Moderate" if c1 == 3 else "Severe"
+            c4_status = "None" if c1 < 2 else "Mild" if c1 == 2 else "Moderate" if c1 == 3 else "Severe"
+            c5_status = "None" if c1 < 2 else "Mild" if c1 == 2 else "Moderate" if c1 == 3 else "Severe"
+            c6_status = "None" if c1 < 2 else "Mild" if c1 == 2 else "Moderate" if c1 == 3 else "Severe"
+
+            record_dict['cognition'] = c1_status
+            record_dict['mobility'] = c2_status
+            record_dict['self_care'] = c3_status
+            record_dict['getting_along'] = c4_status
+            record_dict['life_activities'] = c5_status
+            record_dict['participation'] = c6_status
+
             result_list.append(record_dict)
 
         return result_list
@@ -485,37 +519,37 @@ class EmotionAPIView(APIView):
             c3 = sum(c3_list) - len(c3_list)
 
             if 0 <= c1 < 5:
-                c1_status = "Normal"
+                c1_status = "정상"
             elif 5 <= c1 < 7:
-                c1_status = "Mild"
+                c1_status = "경증 우울 상태"
             elif 7 <= c1 < 11:
-                c1_status = "Moderate"
+                c1_status = "보통의 우울 상태"
             elif 11 <= c1 < 14:
-                c1_status = "Severe"
+                c1_status = "극심한 우울 상태"
             else:
-                c1_status = "Extreme"
+                c1_status = "매우 심한 우울 상태"
 
             if 0 <= c2 < 4:
-                c2_status = "Normal"
+                c2_status = "정상"
             elif 4 <= c2 < 6:
-                c2_status = "Mild"
+                c2_status = "경증 불안 상태"
             elif 6 <= c2 < 8:
-                c2_status = "Moderate"
+                c2_status = "보통의 불안 상태"
             elif 8 <= c2 < 10:
-                c2_status = "Severe"
+                c2_status = "극심한 불안 상태"
             else:
-                c2_status = "Extreme"
+                c2_status = "매우 심한 불안 상태"
 
             if 0 <= c3 < 8:
-                c3_status = "Normal"
+                c3_status = "정상"
             elif 8 <= c3 < 10:
-                c3_status = "Mild"
+                c3_status = "경증 스트레스"
             elif 10 <= c3 < 13:
-                c3_status = "Moderate"
+                c3_status = "보통의 스트레스"
             elif 13 <= c3 < 17:
-                c3_status = "Severe"
+                c3_status = "극심한 스트레스"
             else:
-                c3_status = "Extreme"
+                c3_status = "매우 심한 스트레스"
 
             record_dict = model_to_dict(one_record)
             record_dict['depression_scale'] = c1
@@ -524,6 +558,17 @@ class EmotionAPIView(APIView):
             record_dict['anxiety_status'] = c2_status
             record_dict['stress_scale'] = c3
             record_dict['stress_status'] = c3_status
+
+            # 총점에 대한 상태 반환 추가
+            dass = c1 + c2 + c3
+            status = "정서적으로 건강한 상태" if dass < 10 \
+                else "가벼운 정서적 어려움이 있는 상태" if dass < 16\
+                else "중간단계의 정서적 어려움이 있는 상태" if dass < 24 \
+                else "심각한 정서적 어려움이 있는 상태"
+
+            record_dict['dass'] = dass
+            record_dict['status'] = status
+
             result_list.append(record_dict)
 
         return result_list
@@ -578,15 +623,79 @@ class LonelinessAPIView(APIView):
             return self.get_personal_loneliness(request, user_id)
 
     @csrf_exempt
-    def get_whole_loneliness(self, request):
+    def post(self, request):
 
-        queryset = Loneliness.objects.all()
+        serialized_data = LSISSerializer(data=request.data)
+
+        if serialized_data.is_valid():
+
+            # instance = serialized_data.create(serialized_data.validated_data)
+
+            instance = Loneliness(**serialized_data.validated_data)
+            input_data = [instance]
+            result = LonelinessAPIView.evaluate_loneliness(input_data)
+
+            keys_to_extract = ['loneliness_scale', 'loneliness_status', 'social_support_scale', 'social_network_scale',
+                               'social_isolation_status']
+
+            sub_dict = {key: result[0][key] for key in keys_to_extract if key in result[0]}
+
+            return Response(sub_dict, status=status.HTTP_200_OK)
+
+        else:
+            print(serialized_data.errors)
+
+            return Response(serialized_data.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @staticmethod
+    def evaluate_loneliness(records):
+        result_list = []
+        for one_record in records:
+            # Define scoring conditions
+            # c1: Loneliness Scale, c2: Social Support Scale, c3: Stress Network Scale
+            c1_list = [one_record.result_1, one_record.result_2]
+            c2_list = [one_record.result_3, one_record.result_4]
+            c3_list = [one_record.result_5, one_record.result_6]
+
+            c1 = 0
+            c2 = 0
+            c3 = 0
+
+            for i in c1_list:
+                c1 += (i - 1)
+
+            for i, e in zip(c2_list, c3_list):
+                c2 += (4 - i)
+                c3 += (4 - e)
+
+            if c1 >= 3:
+                status_1 = "Risk"
+            else:
+                status_1 = "Normal"
+
+            if c2 >= 4 & c3 >= 4:
+                status_2 = "Risk"
+            else:
+                status_2 = "Normal"
+
+            record_dict = model_to_dict(one_record)
+            record_dict['loneliness_scale'] = c1
+            record_dict['loneliness_status'] = status_1
+            record_dict['social_support_scale'] = c2
+            record_dict['social_network_scale'] = c3
+            record_dict['social_isolation_status'] = status_2
+            result_list.append(record_dict)
+
+        return result_list
+
+    @csrf_exempt
+    def get_whole_loneliness(self, request):
 
         try:
 
-            serializer = LonelinessSerializer(queryset, many=True)
-
-            return Response(serializer.data)
+            queryset = Loneliness.objects.all()
+            result_list = LonelinessAPIView.evaluate_loneliness(queryset)
+            return Response(result_list)
 
         except Loneliness.DoesNotExist:
 
@@ -599,10 +708,8 @@ class LonelinessAPIView(APIView):
 
             basic_info = BasicInfo.objects.get(id=user_id)
             queryset = basic_info.loneliness_set.all()
-
-            serialized_data = LonelinessSerializer(queryset, many=True).data
-
-            return Response(serialized_data)
+            result_list = LonelinessAPIView.evaluate_loneliness(queryset)
+            return Response(result_list)
 
         except BasicInfo.DoesNotExist:
 

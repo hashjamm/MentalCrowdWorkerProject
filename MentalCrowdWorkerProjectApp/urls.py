@@ -31,5 +31,6 @@ urlpatterns = [
     path("app_get_loneliness/", LonelinessAPIView.as_view(), name='get'),
     path("app_calculate_PSQI_K/", SleepHealthAPIView.as_view(), name='post'),
     path("app_calculate_WHODAS_K/", GeneralHealthAPIView.as_view(), name='post'),
-    path("app_calculate_DASS21_K/", EmotionAPIView.as_view(), name='post')
+    path("app_calculate_DASS21_K/", EmotionAPIView.as_view(), name='post'),
+    path("app_calculate_LSIS/", LonelinessAPIView.as_view(), name='post')
 ]
