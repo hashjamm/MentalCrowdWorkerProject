@@ -79,3 +79,10 @@ class LSISSerializer(serializers.ModelSerializer):
     class Meta:
         model = Loneliness
         fields = ['result_1', 'result_2', 'result_3', 'result_4', 'result_5', 'result_6']
+
+
+class WholeScoresSerializer(serializers.Serializer):
+    PSQI_data = PSQISerializer()
+    WHODAS_data = WHODASSerializer()
+    DASS21_data = DASS21Serializer()
+    LSIS_data = LSISSerializer()

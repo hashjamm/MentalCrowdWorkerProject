@@ -18,7 +18,8 @@ from django.contrib import admin
 from django.urls import path, include
 
 from MentalCrowdWorkerProjectApp.views import BasicInfoAPIView, StressFactorsAPIView, JobSatisfactionAPIView, \
-    JobSatisfactionStressFactorsAPIView, SleepHealthAPIView, GeneralHealthAPIView, EmotionAPIView, LonelinessAPIView
+    JobSatisfactionStressFactorsAPIView, SleepHealthAPIView, GeneralHealthAPIView, EmotionAPIView, LonelinessAPIView, \
+    WholeSurveysAPIView
 
 urlpatterns = [
     path("app_get_basic_info/", BasicInfoAPIView.as_view(), name='get'),
@@ -32,5 +33,6 @@ urlpatterns = [
     path("app_calculate_PSQI_K/", SleepHealthAPIView.as_view(), name='post'),
     path("app_calculate_WHODAS_K/", GeneralHealthAPIView.as_view(), name='post'),
     path("app_calculate_DASS21_K/", EmotionAPIView.as_view(), name='post'),
-    path("app_calculate_LSIS/", LonelinessAPIView.as_view(), name='post')
+    path("app_calculate_LSIS/", LonelinessAPIView.as_view(), name='post'),
+    path("app_calculate_whole_scores/", WholeSurveysAPIView.as_view(), name='post')
 ]
