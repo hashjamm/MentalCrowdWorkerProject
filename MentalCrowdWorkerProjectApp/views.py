@@ -438,7 +438,7 @@ class GeneralHealthAPIView(APIView):
 
             whodas_k = round(100 * (c1 + c2 + c3 + c4 + c5 + c6) / 48, 2)
 
-            whodas_k_status = "건강기능 매우 양호" if whodas_k < 19 \
+            whodas_k_status = "건강기능 매우 양호" if whodas_k < 18 \
                 else "건강기능 주의" if whodas_k < 31 \
                 else "건강기능 어려움" if whodas_k < 43 \
                 else "건강기능 장애" if whodas_k < 61 \
