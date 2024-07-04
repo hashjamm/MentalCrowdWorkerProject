@@ -438,22 +438,19 @@ class GeneralHealthAPIView(APIView):
 
             whodas_k = round(100 * (c1 + c2 + c3 + c4 + c5 + c6) / 48, 2)
 
-            whodas_k_status = "건강기능 매우 양호" if whodas_k < 1 \
-                else "건강기능 다소 양호" if whodas_k < 3 \
-                else "약간의 건강기능 주의" if whodas_k < 7 \
-                else "건강기능 주의요망" if whodas_k < 13 \
-                else "건강기능 어려움" if whodas_k < 23 \
-                else "건강기능 문제보임" if whodas_k < 42 \
-                else "건강기능 장애" if whodas_k < 71 \
+            whodas_k_status = "건강기능 매우 양호" if whodas_k < 19 \
+                else "건강기능 주의" if whodas_k < 31 \
+                else "건강기능 어려움" if whodas_k < 43 \
+                else "건강기능 장애" if whodas_k < 61 \
                 else "건강기능 심각한 장애"
 
             # 주희쌤께서 전달 주신 각 세부 항목별 점수에 대한 상태 기준에 따름. 공인된 것인지는 모르겠음
-            cognition_status = "None" if c1 < 4 else "Mild" if c1 < 6 else "Moderate" if c1 < 8 else "Severe"
-            mobility_status = "None" if c2 < 4 else "Mild" if c2 < 6 else "Moderate" if c2 < 8 else "Severe"
-            self_care_status = "None" if c3 < 4 else "Mild" if c3 < 6 else "Moderate" if c3 < 8 else "Severe"
-            getting_along_status = "None" if c4 < 4 else "Mild" if c4 < 6 else "Moderate" if c4 < 8 else "Severe"
-            life_activities_status = "None" if c5 < 4 else "Mild" if c5 < 6 else "Moderate" if c5 < 8 else "Severe"
-            participation_status = "None" if c6 < 4 else "Mild" if c6 < 6 else "Moderate" if c6 < 8 else "Severe"
+            cognition_status = "None" if c1 < 2 else "Mild" if c1 < 4 else "Moderate" if c1 < 6 else "Severe"
+            mobility_status = "None" if c2 < 2 else "Mild" if c2 < 4 else "Moderate" if c2 < 6 else "Severe"
+            self_care_status = "None" if c3 < 2 else "Mild" if c3 < 4 else "Moderate" if c3 < 6 else "Severe"
+            getting_along_status = "None" if c4 < 2 else "Mild" if c4 < 4 else "Moderate" if c4 < 6 else "Severe"
+            life_activities_status = "None" if c5 < 2 else "Mild" if c5 < 4 else "Moderate" if c5 < 6 else "Severe"
+            participation_status = "None" if c6 < 2 else "Mild" if c6 < 4 else "Moderate" if c6 < 6 else "Severe"
 
             record_dict['cognition_score'] = c1
             record_dict['cognition_status'] = cognition_status
