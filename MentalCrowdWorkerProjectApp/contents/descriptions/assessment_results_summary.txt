@@ -1,0 +1,3 @@
+정신건강 평가 결과, 수면의 질 영역에서 {{psqi_k_status}}로 파악되었습니다. 또한 우울/불안/스트레스 정서 영역에서는 {{whodas_k_status}}로 확인되었습니다. 신체건강 영역에서는 {{dass_status}}로 나타났으며, 외로움 및 사회적 관계 영역은 {{lsis_status}}로 평가되었습니다.
+
+*{{assessment_results_summary_refined}}*

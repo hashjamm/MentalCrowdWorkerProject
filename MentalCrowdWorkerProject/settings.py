@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -65,7 +66,9 @@ ROOT_URLCONF = "MentalCrowdWorkerProject.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": []
+        "DIRS": [
+            os.path.join(BASE_DIR, 'MentalCrowdWorkerProjectApp', 'templates'),
+        ]
         ,
         "APP_DIRS": True,
         "OPTIONS": {
@@ -79,6 +82,9 @@ TEMPLATES = [
     },
 ]
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 WSGI_APPLICATION = "MentalCrowdWorkerProject.wsgi.application"
 
 # Database
@@ -89,7 +95,7 @@ DATABASES = {
         "ENGINE": "django.db.backends.mysql",
         "NAME": "MentalCrowdWorkerProject",
         "USER": "hashjamm",
-        "PASSWORD": "sugar0524",
+        "PASSWORD": "qkrhd20164231!",
         "HOST": "112.222.70.85",
         "PORT": "23306",
         'OPTIONS': {
@@ -130,7 +136,28 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
+# static 파일을 클라이언트가 접근할 때 사용되는 URL 경로 prefix
+# 예: 템플릿에서 {% static 'img/logo.png' %} → "/static/img/logo.png" 로 렌더링됨
 STATIC_URL = "static/"
+
+# collectstatic 명령어 실행 시 모든 static 파일이 이 디렉토리에 복사됨
+# 배포나 PDF 생성처럼 실제 파일 경로 접근이 필요한 작업에 사용됨
+# 이 경로는 직접 만들지 않아도 되고, collectstatic 실행 시 자동 생성됨
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# 개발 중 Django가 static 파일을 찾기 위해 탐색할 디렉토리 목록
+# 즉, 원본 static 파일들이 실제로 존재하는 위치를 명시함
+# 예: MentalCrowdWorkerProjectApp/static/ 내부에 존재하는 이미지, CSS 등
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'MentalCrowdWorkerProjectApp', 'static')
+]
+
+# # OpenAI API 설정 (선택사항)
+# OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', None)
+
+# # Hugging Face API 설정 (무료 한국어 모델용)
+# HUGGINGFACE_API_KEY = os.environ.get('HUGGINGFACE_API_KEY', None)
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
