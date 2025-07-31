@@ -1,0 +1,878 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1024">
+    <title>정신건강 평가 결과지</title>
+    <style>
+        html, body {
+            min-width: 1024px;
+            overflow-x: auto;
+            margin: 0;
+            padding: 0;
+            background-color: white;
+            font-family: 'Arial', sans-serif;
+        }
+
+        .page-wrapper {
+            width: 1000px;
+            margin: 0 auto;
+            padding: 60px;
+            box-sizing: border-box;
+            background-color: white;
+        }
+
+        .header {
+            page-break-inside: avoid;
+            break-inside: avoid;
+            position: relative;
+            width: 100%;
+            height: 220px;
+        {#background-color: #006D5B;#} color: white;
+            text-align: center;
+        }
+
+        .header-placeholder {
+            width: 100%;
+            height: 220px;
+            background: url("{% static 'MentalCrowdWorkerProjectApp/images/top_background.jpg' %}") no-repeat center center;
+            background-size: cover;
+        }
+
+        .header-text {
+            position: absolute;
+            top: 50%;
+            left: 70px;
+            transform: translateY(-50%);
+            text-align: left;
+        }
+
+        .header-text h2 {
+            margin: 0;
+            font-size: 18px;
+            letter-spacing: 2px;
+        }
+
+        .header-text h1 {
+            margin: 10px 0 0 0;
+            font-size: 32px;
+            font-weight: bold;
+            line-height: 1.4;
+        }
+
+        h2.section-title {
+            font-size: 26px;
+            color: #00575D;
+            margin-bottom: 8px;
+        }
+
+        .divider {
+            height: 1px;
+            width: 100%;
+            background-color: #00575D;
+            margin-bottom: 24px;
+        }
+
+        p.description {
+            white-space: pre-line;
+            line-height: 1.8;
+            font-size: 15px;
+            color: #333;
+        }
+
+        .domain-icon-row1,
+        .domain-icon-row2 {
+            page-break-inside: avoid;
+            break-inside: avoid;
+            display: flex;
+            justify-content: center;
+            flex-wrap: nowrap;
+        {#gap: 4%;#}
+        }
+
+        .domain-icon-row1 {
+            margin-top: 40px;
+            height: 70px;
+        }
+
+        .domain-icon-row2 {
+            margin-bottom: 60px;
+        }
+
+        .domain-icon-top,
+        .domain-icon-bottom1,
+        .domain-icon-bottom2,
+        .domain-icon-bottom3,
+        .domain-icon-bottom4 {
+            width: 22%;
+            min-width: 180px;
+            aspect-ratio: 1 / 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #fffbe6;
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: 60% auto;
+        }
+
+        .domain-icon-top {
+            background-image: url("{% static 'MentalCrowdWorkerProjectApp/images/report_overview_top_background.jpg' %}");
+            background-size: cover;
+            font-size: 16px;
+            color: #fff;
+        }
+
+        h3.section-title {
+            font-size: 20px;
+            color: #00575D;
+            margin-top: 40px;
+            margin-bottom: 8px;
+        }
+
+        .score-row-wrapper {
+            page-break-inside: avoid;
+            break-inside: avoid;
+            width: 90%;
+            display: flex;
+            align-items: flex-start; /* 일단 위로 정렬 */
+            margin: 20px auto;
+        }
+
+        .score-bar-labels {
+            position: relative;
+            width: 100%;
+            height: 20px;
+            margin-bottom: 4px;
+            font-size: 12px;
+            color: #333;
+        }
+
+        .label-absolute {
+            position: absolute;
+            transform: translateX(-50%);
+            top: 0;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .score-bar-divider {
+            position: absolute;
+            top: -2px; /* 바보다 조금 위부터 내려오게 */
+            width: 0;
+            height: 55px;
+            border-left: 1px dashed #999;
+            z-index: 0;
+        }
+
+        .label-left {
+            width: 100px;
+            font-weight: bold;
+            font-size: 16px;
+            text-align: left;
+            color: #333;
+            padding-top: 20px;
+        }
+
+        .score-bar-column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .score-bar-wrapper {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+        }
+
+        .score-bar {
+            position: relative;
+            height: 25px;
+            width: 100%;
+            background: linear-gradient(to right, #1366f3 0%, #a1b852 33%, #f1bf14 66%, #eb640f 100%);
+            border-radius: 10px;
+        }
+
+        .score-indicator {
+            position: absolute;
+            top: 50%;
+            width: 20px;
+            height: 20px;
+            background-color: white;
+            border: 4px solid black;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .score-description {
+            font-size: 12px;
+            color: #555;
+            white-space: pre-line;
+            line-height: 1;
+        }
+
+        .score-legend {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            margin: 5px auto 5px auto;
+            font-size: 12px;
+            color: #333;
+            gap: 10px;
+            text-align: left;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .legend-circle {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        {#기본적으로 사용할 팔레트 (defalut)#}
+        .legend-blue {
+            background-color: #1366f3;
+        }
+
+        .legend-green {
+            background-color: #a1b852;
+        }
+
+        .legend-yellow {
+            background-color: #f1bf14;
+        }
+
+        .legend-red {
+            background-color: #eb640f;
+        }
+
+        {#범주가 5단계일 때 사용할 팔레트#}
+        .addi-legend-blue {
+            background-color: #1366f3;
+        }
+
+        .addi-legend-grayblue {
+            background-color: #5d95b2;
+        }
+
+        .addi-legend-ligthyellow {
+            background-color: #ccc56d;
+        }
+
+        .addi-legend-yellow {
+            background-color: #ef9e17;
+        }
+
+        .addi-legend-red {
+            background-color: #eb640f;
+        }
+
+        .chart-wrapper {
+            display: flex;
+            width: 90%;
+            margin: 24px auto;
+        }
+
+        .chart-label-column {
+            display: flex;
+            flex-direction: column;
+            margin-right: 16px;
+            padding: 16px 20px 10px;
+        }
+
+        .chart-label {
+            font-size: 14px;
+            height: 28px;
+            line-height: 25px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+
+        .chart-bar-column {
+            page-break-inside: avoid;
+            break-inside: avoid;
+            flex: 1;
+        }
+
+        .chart-bar-box {
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 16px 20px 10px;
+        }
+
+        .chart-bar-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .chart-bar {
+            position: relative;
+            flex: 1;
+            height: 25px;
+            overflow: hidden;
+        }
+
+        .chart-bar-gradient {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to right, #4caf50, #ffeb3b, #f44336);
+        }
+
+        .chart-bar-overlay {
+            position: absolute;
+            top: 0;
+            right: 0;
+            height: 100%;
+            background-color: #fff;
+        }
+
+        .chart-score {
+            position: absolute;
+            top: 0;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            font-weight: bold;
+            white-space: nowrap;
+            z-index: 3;
+        }
+
+        .chart-score-outside {
+            color: black;
+        }
+
+        .chart-score-inside {
+            color: white; /* 막대 안쪽일 때 대비되는 색으로 */
+        }
+
+        .chart-divider {
+            height: 1px;
+            background-color: #000000;
+        }
+
+        .chart-x-axis {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #666;
+            margin-top: 8px;
+            padding: 0 4px;
+        }
+
+        .chart-gradient-legend {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 90%;
+            margin: 12px auto 0;
+            font-size: 13px;
+        }
+
+        .chart-gradient-bar {
+            flex: 1;
+            height: 14px;
+            margin: 0 8px;
+            border-radius: 7px;
+            background: linear-gradient(to right, #4caf50, #ffeb3b, #f44336);
+        }
+
+    </style>
+</head>
+<body>
+<div class="page-wrapper">
+    <!-- 상단 헤더 영역 (배경 이미지 + 텍스트) -->
+    <div class="header">
+        <div class="header-placeholder"></div>
+        <div class="header-text">
+            <h2>FOR CROWD WORKER’S</h2>
+            <h1>MENTAL HEALTH<br>SCREENING REPORT</h1>
+        </div>
+    </div>
+
+    <div class="container">
+
+        <!-- Report Overview -->
+        <h2 class="section-title">Report Overview</h2>
+        <div class="divider"></div>
+        <p class="description">{{ report_overview_intro|safe }}</p>
+
+        <!-- 도메인별 영역 (아이콘 자리만 비워둠) -->
+        <div class="domain-icon-row1">
+            <div class="domain-icon-top">Sleep Quality</div>
+            <div class="domain-icon-top">Physical Health</div>
+            <div class="domain-icon-top">Anxiety & Stress</div>
+            <div class="domain-icon-top">Social Relationships</div>
+        </div>
+        <div class="domain-icon-row2">
+            <div class="domain-icon-bottom1"
+                 style="background-image: url('{% static 'MentalCrowdWorkerProjectApp/images/report_overview_item1.png' %}')"></div>
+            <div class="domain-icon-bottom2"
+                 style="background-image: url('{% static 'MentalCrowdWorkerProjectApp/images/report_overview_item2.png' %}')"></div>
+            <div class="domain-icon-bottom3"
+                 style="background-image: url('{% static 'MentalCrowdWorkerProjectApp/images/report_overview_item3.png' %}')"></div>
+            <div class="domain-icon-bottom4"
+                 style="background-image: url('{% static 'MentalCrowdWorkerProjectApp/images/report_overview_item4.png' %}')"></div>
+        </div>
+
+
+        <!-- Assessment Results -->
+        <h2 class="section-title">Assessment Results</h2>
+        <p class="description">{{ assessment_results_intro|safe }}</p>
+
+        <!-- Feedback and Recommendations -->
+        <h3 class="section-title">{{ name }}님의 Feedback and Recommendations</h3>
+        <p class="description">{{ assessment_results_summary|safe }}</p>
+
+        <br/>
+        <br/>
+
+        <i>Your position in each Health domain</i>
+
+        <div class="score-row-wrapper">
+            <div class="label-left">수면 건강</div>
+            <div class="score-bar-column">
+                <div class="score-bar-wrapper">
+                    <div class="score-bar-divider" style="left: 21.43%;"></div>
+                    <div class="score-bar-divider" style="left: 50%;"></div>
+                    <div class="score-bar-labels">
+                        <span class="label-absolute" style="left: 10.71%;">양호</span>
+                        <span class="label-absolute" style="left: 35.71%;">주의</span>
+                        <span class="label-absolute" style="left: 75%;">위험</span>
+                    </div>
+                    <div class="score-bar">
+                        <div class="score-indicator" style="left: {{ psqi_k_percent }}%;"></div>
+                    </div>
+                </div>
+                <div class="score-description">
+                    {{ psqi_bar_description|safe }}
+                </div>
+                <div class="score-legend">
+                    <div class="legend-item">
+                        <span class="legend-circle legend-blue"></span>
+                        0~4점: 양호
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-circle legend-green"></span>
+                        5~10점: 주의
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-circle legend-red"></span>
+                        11~21점: 위험
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="score-row-wrapper">
+            <div class="label-left">건강 기능</div>
+            <div class="score-bar-column">
+                <div class="score-bar-wrapper">
+                    <div class="score-bar-divider" style="left: 18%;"></div>
+                    <div class="score-bar-divider" style="left: 31%;"></div>
+                    <div class="score-bar-divider" style="left: 43%;"></div>
+                    <div class="score-bar-divider" style="left: 61%;"></div>
+                    <div class="score-bar-labels">
+                        <span class="label-absolute" style="left: 9%;">양호</span>
+                        <span class="label-absolute" style="left: 24.5%;">주의</span>
+                        <span class="label-absolute" style="left: 37%;">어려움</span>
+                        <span class="label-absolute" style="left: 52%;">위험</span>
+                        <span class="label-absolute" style="left: 80.5%;">심각한 위험</span>
+                    </div>
+                    <div class="score-bar">
+                        <div class="score-indicator" style="left: {{ whodas_k_percent }}%;"></div>
+                    </div>
+                </div>
+                <div class="score-description">
+                    {{ whodas_bar_description|safe }}
+                </div>
+                <div class="score-legend">
+                    <div class="legend-item">
+                        <span class="legend-circle addi-legend-blue"></span>
+                        0~18점: 양호
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-circle addi-legend-grayblue"></span>
+                        18~31점: 주의
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-circle addi-legend-ligthyellow"></span>
+                        31~43점: 어려움
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-circle addi-legend-yellow"></span>
+                        43~61점: 위험
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-circle addi-legend-red"></span>
+                        61~100점: 심각한 위험
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="score-row-wrapper">
+            <div class="label-left">정신 건강</div>
+            <div class="score-bar-column">
+                <div class="score-bar-wrapper">
+                    <div class="score-bar-divider" style="left: 11.51%;"></div>
+                    <div class="score-bar-divider" style="left: 16.27%;"></div>
+                    <div class="score-bar-divider" style="left: 23.41%;"></div>
+                    <div class="score-bar-divider" style="left: 30.56%;"></div>
+                    <div class="score-bar-labels">
+                        <span class="label-absolute" style="left: 5.75%;">양호</span>
+                        <span class="label-absolute" style="left: 13.89%;">주의</span>
+                        <span class="label-absolute" style="left: 19.84%;">어려움</span>
+                        <span class="label-absolute" style="left: 26.98%;">위험</span>
+                        <span class="label-absolute" style="left: 65.28%;">심각한 위험</span>
+                    </div>
+                    <div class="score-bar">
+                        <div class="score-indicator" style="left: {{ dass_percent }}%;"></div>
+                    </div>
+                </div>
+                <div class="score-description">
+                    {{ dass_bar_description|safe }}
+                </div>
+                <div class="score-legend">
+                    <div class="legend-item">
+                        <span class="legend-circle addi-legend-blue"></span>
+                        0~14점: 양호
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-circle addi-legend-grayblue"></span>
+                        15~20점: 주의
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-circle addi-legend-ligthyellow"></span>
+                        21~29점: 어려움
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-circle addi-legend-yellow"></span>
+                        30~38점: 위험
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-circle addi-legend-red"></span>
+                        39~126점: 심각한 위험
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="score-row-wrapper">
+            <div class="label-left">사회적 관계</div>
+            <div class="score-bar-column">
+                <div class="score-bar-wrapper">
+                    <div class="score-bar-divider" style="left: 47.22%;"></div>
+                    <div class="score-bar-labels">
+                        <span class="label-absolute" style="left: 23.61%;">건강</span>
+                        <span class="label-absolute" style="left: 73.61%;">위험</span>
+                    </div>
+                    <div class="score-bar">
+                        <div class="score-indicator" style="left: {{ lsis_percent }}%;"></div>
+                    </div>
+                </div>
+                <div class="score-description">
+                    {{ lsis_bar_description|safe }}
+                </div>
+                <div class="score-legend">
+                    <div class="legend-item">
+                        <span class="legend-circle legend-blue"></span>
+                        0~8점: 건강
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-circle legend-red"></span>
+                        9~18점: 위험
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h3 class="section-title">영역 별 설문 결과 세부 내용</h3>
+
+        <h2 class="section-title">Sleep Quality</h2>
+        <div class="divider"></div>
+        <p class="description">{{ sleep_quality_intro|safe }}</p>
+
+        <h3 class="section-title">수면의 질 결과</h3>
+
+        <!-- 전체 수면 그래프 영역 -->
+        <div class="chart-wrapper">
+            <!-- 왼쪽 라벨 column -->
+            <div class="chart-label-column">
+                {% for item in sleep_components %}
+                    <div class="chart-label">{{ item.label }}</div>
+                {% endfor %}
+            </div>
+
+            <!-- 오른쪽 막대 column (회색 테두리) -->
+
+            <div class="chart-bar-column">
+                <div class="chart-bar-box">
+                    {% for item in sleep_components %}
+                        <div class="chart-bar-row">
+                            <div class="chart-bar">
+                                <div class="chart-bar-gradient"></div>
+                                <div class="chart-bar-overlay" style="width: {{ item.rev_percent }}%;"></div>
+                                <div class="chart-score
+                                        {% if item.percent >= 90 %}
+                                            chart-score-inside
+                                        {% else %}
+                                            chart-score-outside
+                                        {% endif %}"
+                                     style="
+                                             {% if item.percent >= 90 %}
+                                                 left: calc({{ item.percent }}% - 20px);
+                                             {% else %}
+                                                 left: calc({{ item.percent }}% + 4px);
+                                             {% endif %}">
+                                    {{ item.score }}
+                                </div>
+
+                            </div>
+                        </div>
+                    {% endfor %}
+
+                    <div class="chart-divider"></div>
+                    <div class="chart-x-axis">
+                        {% for i in psqi_detail_range %}
+                            <span><strong>{{ forloop.counter0 }}</strong></span>
+                        {% endfor %}
+                    </div>
+                </div>
+                <!-- 하단 범례 -->
+                <div class="chart-gradient-legend">
+                    <span>양호</span>
+                    <div class="chart-gradient-bar"></div>
+                    <span>위험</span>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="chart-wrapper">
+            <div class="chart-label-column">
+                <p class="description">{{ psqi_detail_description|safe }}</p>
+            </div>
+        </div>
+
+        <h2 class="section-title">Physical Health</h2>
+        <div class="divider"></div>
+        <p class="description">{{ physical_health_intro|safe }}</p>
+
+        <h3 class="section-title">신체 건강 결과</h3>
+
+        <!-- 전체 수면 그래프 영역 -->
+        <div class="chart-wrapper">
+            <!-- 왼쪽 라벨 column -->
+            <div class="chart-label-column">
+                {% for item in general_health_components %}
+                    <div class="chart-label">{{ item.label }}</div>
+                {% endfor %}
+            </div>
+
+            <!-- 오른쪽 막대 column (회색 테두리) -->
+
+            <div class="chart-bar-column">
+                <div class="chart-bar-box">
+                    {% for item in general_health_components %}
+                        <div class="chart-bar-row">
+                            <div class="chart-bar">
+                                <div class="chart-bar-gradient"></div>
+                                <div class="chart-bar-overlay" style="width: {{ item.rev_percent }}%;"></div>
+                                <div class="chart-score
+                                        {% if item.percent >= 90 %}
+                                            chart-score-inside
+                                        {% else %}
+                                            chart-score-outside
+                                        {% endif %}"
+                                     style="
+                                             {% if item.percent >= 90 %}
+                                                 left: calc({{ item.percent }}% - 20px);
+                                             {% else %}
+                                                 left: calc({{ item.percent }}% + 4px);
+                                             {% endif %}">
+                                    {{ item.score }}
+                                </div>
+
+                            </div>
+                        </div>
+                    {% endfor %}
+
+                    <div class="chart-divider"></div>
+                    <div class="chart-x-axis">
+                        {% for i in whodas_detail_range %}
+                            <span><strong>{{ forloop.counter0 }}</strong></span>
+                        {% endfor %}
+                    </div>
+                </div>
+                <!-- 하단 범례 -->
+                <div class="chart-gradient-legend">
+                    <span>양호</span>
+                    <div class="chart-gradient-bar"></div>
+                    <span>위험</span>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="chart-wrapper">
+            <div class="chart-label-column">
+                <p class="description">{{ whodas_detail_description|safe }}</p>
+            </div>
+        </div>
+
+        <h2 class="section-title">Depression, Anxiety and Stress</h2>
+        <div class="divider"></div>
+        <p class="description">{{ depression_intro|safe }}</p>
+
+        <h3 class="section-title">우울/불안/스트레스 결과</h3>
+
+        <!-- 전체 수면 그래프 영역 -->
+        <div class="chart-wrapper">
+            <!-- 왼쪽 라벨 column -->
+            <div class="chart-label-column">
+                {% for item in emotion_components %}
+                    <div class="chart-label">{{ item.label }}</div>
+                {% endfor %}
+            </div>
+
+            <!-- 오른쪽 막대 column (회색 테두리) -->
+
+            <div class="chart-bar-column">
+                <div class="chart-bar-box">
+                    {% for item in emotion_components %}
+                        <div class="chart-bar-row">
+                            <div class="chart-bar">
+                                <div class="chart-bar-gradient"></div>
+                                <div class="chart-bar-overlay" style="width: {{ item.rev_percent }}%;"></div>
+                                <div class="chart-score
+                                        {% if item.percent >= 90 %}
+                                            chart-score-inside
+                                        {% else %}
+                                            chart-score-outside
+                                        {% endif %}"
+                                     style="
+                                             {% if item.percent >= 90 %}
+                                                 left: calc({{ item.percent }}% - 20px);
+                                             {% else %}
+                                                 left: calc({{ item.percent }}% + 4px);
+                                             {% endif %}">
+                                    {{ item.score }}
+                                </div>
+
+                            </div>
+                        </div>
+                    {% endfor %}
+
+                    <div class="chart-divider"></div>
+                    <div class="chart-x-axis">
+                        {% for i in dass_detail_range %}
+                            <span><strong>{{ i }}</strong></span>
+                        {% endfor %}
+                    </div>
+                </div>
+                <!-- 하단 범례 -->
+                <div class="chart-gradient-legend">
+                    <span>양호</span>
+                    <div class="chart-gradient-bar"></div>
+                    <span>위험</span>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="chart-wrapper">
+            <div class="chart-label-column">
+                <p class="description">{{ dass_detail_description|safe }}</p>
+            </div>
+        </div>
+
+        <h2 class="section-title">Loneliness and Social Relationships</h2>
+        <div class="divider"></div>
+        <p class="description">{{ loneliness_intro|safe }}</p>
+
+        <h3 class="section-title">외로움 및 사회적 관계 결과</h3>
+
+        <!-- 전체 수면 그래프 영역 -->
+        <div class="chart-wrapper">
+            <!-- 왼쪽 라벨 column -->
+            <div class="chart-label-column">
+                {% for item in loneliness_components %}
+                    <div class="chart-label">{{ item.label }}</div>
+                {% endfor %}
+            </div>
+
+            <!-- 오른쪽 막대 column (회색 테두리) -->
+
+            <div class="chart-bar-column">
+                <div class="chart-bar-box">
+                    {% for item in loneliness_components %}
+                        <div class="chart-bar-row">
+                            <div class="chart-bar">
+                                <div class="chart-bar-gradient"></div>
+                                <div class="chart-bar-overlay" style="width: {{ item.rev_percent }}%;"></div>
+                                <div class="chart-score
+                                        {% if item.percent >= 90 %}
+                                            chart-score-inside
+                                        {% else %}
+                                            chart-score-outside
+                                        {% endif %}"
+                                     style="
+                                             {% if item.percent >= 90 %}
+                                                 left: calc({{ item.percent }}% - 20px);
+                                             {% else %}
+                                                 left: calc({{ item.percent }}% + 4px);
+                                             {% endif %}">
+                                    {{ item.score }}
+                                </div>
+
+                            </div>
+                        </div>
+                    {% endfor %}
+
+                    <div class="chart-divider"></div>
+                    <div class="chart-x-axis">
+                        {% for i in lsis_detail_range %}
+                            <span><strong>{{ forloop.counter0 }}</strong></span>
+                        {% endfor %}
+                    </div>
+                </div>
+                <!-- 하단 범례 -->
+                <div class="chart-gradient-legend">
+                    <span>양호</span>
+                    <div class="chart-gradient-bar"></div>
+                    <span>위험</span>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="chart-wrapper">
+            <div class="chart-label-column">
+                <p class="description">{{ lsis_detail_description|safe }}</p>
+            </div>
+        </div>
+
+        <h2 class="section-title">Feedback and Recommendation</h2>
+        <div class="divider"></div>
+        <p class="description">{{ feedback_recommendation_description|safe }}</p>
+
+    </div>
+</div>
+</body>
+</html>

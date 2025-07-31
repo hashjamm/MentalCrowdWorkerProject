@@ -5,6 +5,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 
 class BasicInfo(models.Model):
     id = models.BigAutoField(help_text="BasicInfo pk", primary_key=True)
+    name = models.CharField(max_length=100, null=False, blank=False, verbose_name="사용자 이름")
     sex = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(2)], verbose_name="성별")
     age = models.IntegerField(validators=[MinValueValidator(0)], verbose_name="연령")
     edu_level = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)], verbose_name="최종 학력")
@@ -35,16 +36,8 @@ class JobSatisfaction(models.Model):
     def save(self, *args, **kwargs):
         with transaction.atomic():
             super().save(*args, **kwargs)
-
-            through_model = self.stress_factors.through
-            through_model.objects.filter(job_satisfaction=self).delete()
-
-            stress_factors_objects = [
-                through_model(job_satisfaction=self, stress_factors=stress_factor)
-                for stress_factor in self.stress_factors.all()
-            ]
-
-            through_model.objects.bulk_create(stress_factors_objects)
+        # ManyToMany 필드는 save() 이후 별도로 처리해야 합니다.
+        # 예: self.stress_factors.set([...])
 
 
 class JobSatisfactionStressFactors(models.Model):
@@ -133,7 +126,7 @@ class Emotion(models.Model):
 
 
 class Loneliness(models.Model):
-    id = models.BigAutoField(help_text="Loneliness pk", primary_key=True),
+    id = models.BigAutoField(help_text="Loneliness pk", primary_key=True)
     participant_id = models.ForeignKey(BasicInfo, on_delete=models.CASCADE, verbose_name="BasicInfo pk",
                                        related_name='loneliness_set')
     result_1 = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(4)], verbose_name="1번 문항")

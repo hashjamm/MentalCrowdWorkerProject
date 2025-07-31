@@ -1,0 +1,21 @@
+# Large files to ignore
+*.tar
+*.zip
+
+# Django generated files
+__pycache__/
+*.log
+db.sqlite3
+
+# Static files directory collected by Django
+/staticfiles/
+
+# Media files directory
+/media/
+
+# Editor-specific settings
+.idea/
+.vscode/
+
+# Environment variables file
+.env

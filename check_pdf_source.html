@@ -1,0 +1,1220 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1024">
+    <title>정신건강 평가 결과지</title>
+    <style>
+        html, body {
+            min-width: 1024px;
+            overflow-x: auto;
+            margin: 0;
+            padding: 0;
+            background-color: white;
+            font-family: 'Arial', sans-serif;
+        }
+
+        .page-wrapper {
+            width: 1000px;
+            margin: 0 auto;
+            padding: 60px;
+            box-sizing: border-box;
+            background-color: white;
+        }
+
+        .header {
+            position: relative;
+            width: 100%;
+            height: 220px;
+            background-color: #006D5B;
+            color: white;
+            text-align: center;
+        }
+
+        .header-placeholder {
+            width: 100%;
+            height: 220px;
+            background: url("file:///C:/Users/HashJam/PycharmProjects/MentalCrowdWorkerProject/staticfiles/MentalCrowdWorkerProjectApp/images/top_background.jpg") no-repeat center center;
+            background-size: cover;
+        }
+
+        .header-text {
+            position: absolute;
+            top: 50%;
+            left: 70px;
+            transform: translateY(-50%);
+            text-align: left;
+        }
+
+        .header-text h2 {
+            margin: 0;
+            font-size: 18px;
+            letter-spacing: 2px;
+        }
+
+        .header-text h1 {
+            margin: 10px 0 0 0;
+            font-size: 32px;
+            font-weight: bold;
+            line-height: 1.4;
+        }
+
+        h2.section-title {
+            font-size: 26px;
+            color: #00575D;
+            margin-bottom: 8px;
+        }
+
+        .divider {
+            height: 1px;
+            width: 100%;
+            background-color: #00575D;
+            margin-bottom: 24px;
+        }
+
+        p.description {
+            white-space: pre-line;
+            line-height: 1.8;
+            font-size: 15px;
+            color: #333;
+        }
+
+        .domain-icon-row1,
+        .domain-icon-row2 {
+            display: flex;
+            justify-content: center;
+            flex-wrap: nowrap;
+            
+        }
+
+        .domain-icon-row1 {
+            margin-top: 40px;
+            height: 70px;
+        }
+
+        .domain-icon-row2 {
+            margin-bottom: 60px;
+        }
+
+        .domain-icon-top,
+        .domain-icon-bottom1,
+        .domain-icon-bottom2,
+        .domain-icon-bottom3,
+        .domain-icon-bottom4 {
+            width: 22%;
+            min-width: 180px;
+            aspect-ratio: 1 / 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #fffbe6;
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: 60% auto;
+        }
+
+        .domain-icon-top {
+            background-image: url("file:///C:/Users/HashJam/PycharmProjects/MentalCrowdWorkerProject/staticfiles/MentalCrowdWorkerProjectApp/images/report_overview_top_background.jpg");
+            background-size: cover;
+            font-size: 16px;
+            color: #fff;
+        }
+
+        h3.section-title {
+            font-size: 20px;
+            color: #00575D;
+            margin-top: 40px;
+            margin-bottom: 8px;
+        }
+
+        .score-row-wrapper {
+            width: 90%;
+            display: flex;
+            align-items: flex-start; /* 일단 위로 정렬 */
+            margin: 20px auto;
+        }
+
+        .score-bar-labels {
+            position: relative;
+            width: 100%;
+            height: 20px;
+            margin-bottom: 4px;
+            font-size: 12px;
+            color: #333;
+        }
+
+        .label-absolute {
+            position: absolute;
+            transform: translateX(-50%);
+            top: 0;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .score-bar-divider {
+            position: absolute;
+            top: -2px; /* 바보다 조금 위부터 내려오게 */
+            width: 0;
+            height: 55px;
+            border-left: 1px dashed #999;
+            z-index: 0;
+        }
+
+        .label-left {
+            width: 100px;
+            font-weight: bold;
+            font-size: 16px;
+            text-align: left;
+            color: #333;
+            padding-top: 20px;
+        }
+
+        .score-bar-column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .score-bar-wrapper {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+        }
+
+        .score-bar {
+            position: relative;
+            height: 25px;
+            width: 100%;
+            background: linear-gradient(to right, #1366f3 0%, #a1b852 33%, #f1bf14 66%, #eb640f 100%);
+            border-radius: 10px;
+        }
+
+        .score-indicator {
+            position: absolute;
+            top: 50%;
+            width: 20px;
+            height: 20px;
+            background-color: white;
+            border: 4px solid black;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .score-description {
+            font-size: 12px;
+            color: #555;
+            white-space: pre-line;
+            line-height: 1;
+        }
+
+        .score-legend {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            margin: 5px auto 5px auto;
+            font-size: 12px;
+            color: #333;
+            gap: 10px;
+            text-align: left;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .legend-circle {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        
+        .legend-blue {
+            background-color: #1366f3;
+        }
+
+        .legend-green {
+            background-color: #a1b852;
+        }
+
+        .legend-yellow {
+            background-color: #f1bf14;
+        }
+
+        .legend-red {
+            background-color: #eb640f;
+        }
+
+        
+        .addi-legend-blue {
+            background-color: #1366f3;
+        }
+
+        .addi-legend-grayblue {
+            background-color: #5d95b2;
+        }
+
+        .addi-legend-ligthyellow {
+            background-color: #ccc56d;
+        }
+
+        .addi-legend-yellow {
+            background-color: #ef9e17;
+        }
+
+        .addi-legend-red {
+            background-color: #eb640f;
+        }
+
+        .chart-wrapper {
+            display: flex;
+            width: 90%;
+            margin: 24px auto;
+        }
+
+        .chart-label-column {
+            display: flex;
+            flex-direction: column;
+            margin-right: 16px;
+            padding: 16px 20px 10px;
+        }
+
+        .chart-label {
+            font-size: 14px;
+            height: 28px;
+            line-height: 25px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+
+        .chart-bar-column {
+            flex: 1;
+        }
+
+        .chart-bar-box {
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 16px 20px 10px;
+        }
+
+        .chart-bar-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .chart-bar {
+            position: relative;
+            flex: 1;
+            height: 25px;
+            overflow: hidden;
+        }
+
+        .chart-bar-gradient {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to right, #4caf50, #ffeb3b, #f44336);
+        }
+
+        .chart-bar-overlay {
+            position: absolute;
+            top: 0;
+            right: 0;
+            height: 100%;
+            background-color: #fff;
+        }
+
+        .chart-score {
+            position: absolute;
+            top: 0;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            font-weight: bold;
+            white-space: nowrap;
+            z-index: 3;
+        }
+
+        .chart-score-outside {
+            color: black;
+        }
+
+        .chart-score-inside {
+            color: white; /* 막대 안쪽일 때 대비되는 색으로 */
+        }
+
+        .chart-divider {
+            height: 1px;
+            background-color: #000000;
+        }
+
+        .chart-x-axis {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #666;
+            margin-top: 8px;
+            padding: 0 4px;
+        }
+
+        .chart-gradient-legend {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 90%;
+            margin: 12px auto 0;
+            font-size: 13px;
+        }
+
+        .chart-gradient-bar {
+            flex: 1;
+            height: 14px;
+            margin: 0 8px;
+            border-radius: 7px;
+            background: linear-gradient(to right, #4caf50, #ffeb3b, #f44336);
+        }
+
+    </style>
+</head>
+<body>
+<div class="page-wrapper">
+    <!-- 상단 헤더 영역 (배경 이미지 + 텍스트) -->
+    <div class="header">
+        <div class="header-placeholder"></div>
+        <div class="header-text">
+            <h2>FOR CROWD WORKER’S</h2>
+            <h1>MENTAL HEALTH<br>SCREENING REPORT</h1>
+        </div>
+    </div>
+
+    <div class="container">
+
+        <!-- Report Overview -->
+        <h2 class="section-title">Report Overview</h2>
+        <div class="divider"></div>
+        <p class="description">본 결과는 비대면 업무방식의 크라우드 워커 근로자의 <strong>정신건강 자가 평가 설문도구</strong>의 결과를 정리한 보고서 입니다. 평가는 수면, 신체 건강, 정서적 상태, 사회 관계적 측면의 4가지 수준을 파악하여 결과를 제시하였습니다. 설문은 각 영역별로 국제적으로 검증된 설문 도구를 활용하였으며 수면의 질은 피츠버그 수면의 질 지수 한국어 판(PSQI-K), 신체건강 영역은 피로도, 통증도, 활력도 등을 묻는 WHODAS 2.0문항, 우울/불안/스트레스는 DASS-21 척도로 평가되었으며, 사회적 관계는 LSIS 외로움 척도를 통해 파악했습니다. 개인의 설문 문항은 조합하여 점수화하였으며 전반적인 건강 수준을 종합적으로 반영하도록 구성됩니다.</p>
+
+        <!-- 도메인별 영역 (아이콘 자리만 비워둠) -->
+        <div class="domain-icon-row1">
+            <div class="domain-icon-top">Sleep Quality</div>
+            <div class="domain-icon-top">Physical Health</div>
+            <div class="domain-icon-top">Anxiety & Stress</div>
+            <div class="domain-icon-top">Social Relationships</div>
+        </div>
+        <div class="domain-icon-row2">
+            <div class="domain-icon-bottom1"
+                 style="background-image: url('file:///C:/Users/HashJam/PycharmProjects/MentalCrowdWorkerProject/staticfiles/MentalCrowdWorkerProjectApp/images/report_overview_item1.png')"></div>
+            <div class="domain-icon-bottom2"
+                 style="background-image: url('file:///C:/Users/HashJam/PycharmProjects/MentalCrowdWorkerProject/staticfiles/MentalCrowdWorkerProjectApp/images/report_overview_item2.png')"></div>
+            <div class="domain-icon-bottom3"
+                 style="background-image: url('file:///C:/Users/HashJam/PycharmProjects/MentalCrowdWorkerProject/staticfiles/MentalCrowdWorkerProjectApp/images/report_overview_item3.png')"></div>
+            <div class="domain-icon-bottom4"
+                 style="background-image: url('file:///C:/Users/HashJam/PycharmProjects/MentalCrowdWorkerProject/staticfiles/MentalCrowdWorkerProjectApp/images/report_overview_item4.png')"></div>
+        </div>
+
+
+        <!-- Assessment Results -->
+        <h2 class="section-title">Assessment Results</h2>
+        <p class="description">각 설문 문항에 대한 <strong>사용자8님</strong>의 응답을 점수로 환산하여 영역별 총점을 산출하였고, 점수에 따라 각 항목의 점수를 색상 그래프로 시각화하였습니다. 그래프는 <strong>낮은 위험도(양호)는 초록색, 중간 수준은 노랑색, 위험도가 높을수록 빨간색</strong>에 가까운 색으로 표시됩니다. 이를 통해 각 영역별 현재 상태가 양호한지 보통 수준인지 주의가 필요한지 스스로의 상태를 한눈에 직관적으로 파악 가능하며 각 영역별 평가 결과와 해석을 제공합니다.</p>
+
+        <!-- Feedback and Recommendations -->
+        <h3 class="section-title">사용자8님의 Feedback and Recommendations</h3>
+        <p class="description">정신건강 평가 결과, 수면의 질 영역 점수에서 수면 상태에 주의가 팔요한 수준으로 파악되었습니다. 또한 우울/불안/스트레스 정서 역역에서는 중증도 수준의 스트레스 반응이 확인되었습니다. 신체건강 영역 점수는 양호하여 큰 문제가 없었으며, 외로움 및 사회적 관계 영역은 양호 수준으로 평가되었습니다.
+
+전반적으로 <strong>수면의 질과 정서적 스트레스 관리를 중심으로 한 개선 노력이 권장되며, 신체적인 건강 상태와 사회적 관계는 현재 수준을 유지 및 강화하는 방향이 좋습니다.</strong></p>
+
+        <br/>
+        <br/>
+
+        <i>Your position in each Health domain</i>
+
+        <div class="score-row-wrapper">
+            <div class="label-left">수면 건강</div>
+            <div class="score-bar-column">
+                <div class="score-bar-wrapper">
+                    <div class="score-bar-divider" style="left: 21.43%;"></div>
+                    <div class="score-bar-divider" style="left: 50%;"></div>
+                    <div class="score-bar-labels">
+                        <span class="label-absolute" style="left: 10.71%;">건강</span>
+                        <span class="label-absolute" style="left: 35.71%;">경증</span>
+                        <span class="label-absolute" style="left: 75%;">위험</span>
+                    </div>
+                    <div class="score-bar">
+                        <div class="score-indicator" style="left: 66.67%;"></div>
+                    </div>
+                </div>
+                <div class="score-description">
+                    수면 건강 상태는 <span style="color:#FFA500;"><strong>14</strong></span>점으로 <span style="color:#FFA500;"><strong>수면 장애</strong></span> 입니다.
+                </div>
+                <div class="score-legend">
+                    <div class="legend-item">
+                        <span class="legend-circle legend-blue"></span>
+                        0~4점: 건강
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-circle legend-green"></span>
+                        5~10점: 경증
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-circle legend-red"></span>
+                        11~21점: 위험
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="score-row-wrapper">
+            <div class="label-left">건강 기능</div>
+            <div class="score-bar-column">
+                <div class="score-bar-wrapper">
+                    <div class="score-bar-divider" style="left: 18%;"></div>
+                    <div class="score-bar-divider" style="left: 31%;"></div>
+                    <div class="score-bar-divider" style="left: 43%;"></div>
+                    <div class="score-bar-divider" style="left: 61%;"></div>
+                    <div class="score-bar-labels">
+                        <span class="label-absolute" style="left: 9%;">건강</span>
+                        <span class="label-absolute" style="left: 24.5%;">주의</span>
+                        <span class="label-absolute" style="left: 37%;">심각</span>
+                        <span class="label-absolute" style="left: 52%;">장애</span>
+                        <span class="label-absolute" style="left: 80.5%;">중증 장애</span>
+                    </div>
+                    <div class="score-bar">
+                        <div class="score-indicator" style="left: 18.75%;"></div>
+                    </div>
+                </div>
+                <div class="score-description">
+                    건강 기능 상태는 <span style="color:#FFA500;"><strong>18.75</strong></span>점으로 <span style="color:#FFA500;"><strong>건강기능 주의</strong></span> 입니다.
+                </div>
+                <div class="score-legend">
+                    <div class="legend-item">
+                        <span class="legend-circle addi-legend-blue"></span>
+                        0~18점: 건강
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-circle addi-legend-grayblue"></span>
+                        18~31점: 주의
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-circle addi-legend-ligthyellow"></span>
+                        31~43점: 심각
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-circle addi-legend-yellow"></span>
+                        43~61점: 장애
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-circle addi-legend-red"></span>
+                        61~100점: 중증 장애
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="score-row-wrapper">
+            <div class="label-left">정신 건강</div>
+            <div class="score-bar-column">
+                <div class="score-bar-wrapper">
+                    <div class="score-bar-divider" style="left: 11.51%;"></div>
+                    <div class="score-bar-divider" style="left: 16.27%;"></div>
+                    <div class="score-bar-divider" style="left: 23.41%;"></div>
+                    <div class="score-bar-divider" style="left: 30.56%;"></div>
+                    <div class="score-bar-labels">
+                        <span class="label-absolute" style="left: 5.75%;">건강</span>
+                        <span class="label-absolute" style="left: 13.89%;">경증</span>
+                        <span class="label-absolute" style="left: 19.84%;">중간</span>
+                        <span class="label-absolute" style="left: 26.98%;">심각</span>
+                        <span class="label-absolute" style="left: 65.28%;">매우 심각</span>
+                    </div>
+                    <div class="score-bar">
+                        <div class="score-indicator" style="left: 15.87%;"></div>
+                    </div>
+                </div>
+                <div class="score-description">
+                    정신 건강 상태는 <span style="color:#FFA500;"><strong>20</strong></span>점으로 <span style="color:#FFA500;"><strong>가벼운 정서적 어려움이 있는 상태</strong></span> 입니다.
+                </div>
+                <div class="score-legend">
+                    <div class="legend-item">
+                        <span class="legend-circle addi-legend-blue"></span>
+                        0~14점: 건강
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-circle addi-legend-grayblue"></span>
+                        15~20점: 경증
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-circle addi-legend-ligthyellow"></span>
+                        21~29점: 중간
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-circle addi-legend-yellow"></span>
+                        30~38점: 심각
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-circle addi-legend-red"></span>
+                        39~126점: 매우 심각
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="score-row-wrapper">
+            <div class="label-left">사회적 관계</div>
+            <div class="score-bar-column">
+                <div class="score-bar-wrapper">
+                    <div class="score-bar-divider" style="left: 47.22%;"></div>
+                    <div class="score-bar-labels">
+                        <span class="label-absolute" style="left: 23.61%;">건강</span>
+                        <span class="label-absolute" style="left: 73.61%;">위험</span>
+                    </div>
+                    <div class="score-bar">
+                        <div class="score-indicator" style="left: 11.11%;"></div>
+                    </div>
+                </div>
+                <div class="score-description">
+                    사회적 관계 상태는 <span style="color:#FFA500;"><strong>2</strong></span>점으로 <span style="color:#FFA500;"><strong>사회적 관계가 건강한 상태</strong></span> 입니다.
+                </div>
+                <div class="score-legend">
+                    <div class="legend-item">
+                        <span class="legend-circle legend-blue"></span>
+                        0~8점: 건강
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-circle legend-red"></span>
+                        9~18점: 위험
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h3 class="section-title">영역 별 설문 결과 세부 내용</h3>
+
+        <h2 class="section-title">Sleep Quality</h2>
+        <div class="divider"></div>
+        <p class="description">피츠버그 수면의 질 지수(PSQI-K)는 지난 한 달간의 수면 습관과 질을 평가하는 자가보고 설문지입니다. 총점 범위는 0점에서 21점으로 점수가 높을수록 전반적인 수면의 질이 나쁜것을 의미하며, 일반적으로 5점을 <strong>초과하면 수면의 질이 저하된 것으로 판단합니다.</strong> 아래에는 7개 세부 영역에 대한 점수와 해석이 나와 있습니다.</p>
+
+        <h3 class="section-title">수면의 질 결과</h3>
+
+        <!-- 전체 수면 그래프 영역 -->
+        <div class="chart-wrapper">
+            <!-- 왼쪽 라벨 column -->
+            <div class="chart-label-column">
+                
+                    <div class="chart-label">주관적 수면의 질</div>
+                
+                    <div class="chart-label">수면 잠복기</div>
+                
+                    <div class="chart-label">수면 시간</div>
+                
+                    <div class="chart-label">수면 효율</div>
+                
+                    <div class="chart-label">수면 방해</div>
+                
+                    <div class="chart-label">수면제 사용</div>
+                
+                    <div class="chart-label">주간 기능장애</div>
+                
+            </div>
+
+            <!-- 오른쪽 막대 column (회색 테두리) -->
+
+            <div class="chart-bar-column">
+                <div class="chart-bar-box">
+                    
+                        <div class="chart-bar-row">
+                            <div class="chart-bar">
+                                <div class="chart-bar-gradient"></div>
+                                <div class="chart-bar-overlay" style="width: 33.33%;"></div>
+                                <div class="chart-score
+                                        
+                                            chart-score-outside
+                                        "
+                                     style="
+                                             
+                                                 left: calc(66.67% + 4px);
+                                             ">
+                                    2
+                                </div>
+
+                            </div>
+                        </div>
+                    
+                        <div class="chart-bar-row">
+                            <div class="chart-bar">
+                                <div class="chart-bar-gradient"></div>
+                                <div class="chart-bar-overlay" style="width: 33.33%;"></div>
+                                <div class="chart-score
+                                        
+                                            chart-score-outside
+                                        "
+                                     style="
+                                             
+                                                 left: calc(66.67% + 4px);
+                                             ">
+                                    2
+                                </div>
+
+                            </div>
+                        </div>
+                    
+                        <div class="chart-bar-row">
+                            <div class="chart-bar">
+                                <div class="chart-bar-gradient"></div>
+                                <div class="chart-bar-overlay" style="width: 0.0%;"></div>
+                                <div class="chart-score
+                                        
+                                            chart-score-inside
+                                        "
+                                     style="
+                                             
+                                                 left: calc(100.0% - 20px);
+                                             ">
+                                    3
+                                </div>
+
+                            </div>
+                        </div>
+                    
+                        <div class="chart-bar-row">
+                            <div class="chart-bar">
+                                <div class="chart-bar-gradient"></div>
+                                <div class="chart-bar-overlay" style="width: 0.0%;"></div>
+                                <div class="chart-score
+                                        
+                                            chart-score-inside
+                                        "
+                                     style="
+                                             
+                                                 left: calc(100.0% - 20px);
+                                             ">
+                                    3
+                                </div>
+
+                            </div>
+                        </div>
+                    
+                        <div class="chart-bar-row">
+                            <div class="chart-bar">
+                                <div class="chart-bar-gradient"></div>
+                                <div class="chart-bar-overlay" style="width: 33.33%;"></div>
+                                <div class="chart-score
+                                        
+                                            chart-score-outside
+                                        "
+                                     style="
+                                             
+                                                 left: calc(66.67% + 4px);
+                                             ">
+                                    2
+                                </div>
+
+                            </div>
+                        </div>
+                    
+                        <div class="chart-bar-row">
+                            <div class="chart-bar">
+                                <div class="chart-bar-gradient"></div>
+                                <div class="chart-bar-overlay" style="width: 100.0%;"></div>
+                                <div class="chart-score
+                                        
+                                            chart-score-outside
+                                        "
+                                     style="
+                                             
+                                                 left: calc(0.0% + 4px);
+                                             ">
+                                    0
+                                </div>
+
+                            </div>
+                        </div>
+                    
+                        <div class="chart-bar-row">
+                            <div class="chart-bar">
+                                <div class="chart-bar-gradient"></div>
+                                <div class="chart-bar-overlay" style="width: 33.33%;"></div>
+                                <div class="chart-score
+                                        
+                                            chart-score-outside
+                                        "
+                                     style="
+                                             
+                                                 left: calc(66.67% + 4px);
+                                             ">
+                                    2
+                                </div>
+
+                            </div>
+                        </div>
+                    
+
+                    <div class="chart-divider"></div>
+                    <div class="chart-x-axis">
+                        
+                            <span><strong>0</strong></span>
+                        
+                            <span><strong>1</strong></span>
+                        
+                            <span><strong>2</strong></span>
+                        
+                            <span><strong>3</strong></span>
+                        
+                    </div>
+                </div>
+                <!-- 하단 범례 -->
+                <div class="chart-gradient-legend">
+                    <span>양호</span>
+                    <div class="chart-gradient-bar"></div>
+                    <span>위험</span>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="chart-wrapper">
+            <div class="chart-label-column">
+                <p class="description">1. <strong>주관적 수면의 질</strong> : 최근 한 달간 주관적으로 느낀 수면의 전반적 질 - <strong>2점</strong> (나쁨)
+2. <strong>수면 잠복기</strong> : 잠에 들기까지 걸리는 시간과 그 빈도 - <strong>2점</strong> (조금 길다)
+3. <strong>수면 시간</strong> : 하루 평균 수면 시간 - <strong>3점</strong> (짧음)
+4. <strong>수면 효율</strong> : 잠자는 시간 대비 실제 잠든 시간의 비율 - <strong>3점</strong> (나쁨)
+5. <strong>수면 방해</strong> : 밤중에 수면을 방해한 요소의 빈도 - <strong>2점</strong> (있음)
+6. <strong>수면제 사용</strong> : 수면제 복용 빈도 - <strong>0점</strong> (없음)
+7. <strong>주간 기능장애</strong> : 낮 시간 동안 피로나 졸림으로 인한 기능 저하 - <strong>2점</strong> (문제 있음)</p>
+            </div>
+        </div>
+
+        <h2 class="section-title">Physical Health</h2>
+        <div class="divider"></div>
+        <p class="description">WHODAS-K (World Health Organization Disability Assessment Schedule - Korea) 는 세계보건기구에서 평가 지표로 사용되며 신체 건강 및 기능 수행 능력 결과를 정리한 것입니다. 각 문항은 0점(전혀 어려움 없음)부터 4점(극심한 어려움 또는 수행 불가능)까지로 평가되며, 점수가 높을수록 해당 영역에서의 기능제한이 큰 것을 의미합니다. 모든 문항의 점수의 합계를 표준화된 총점(0~100점 척도)으로 환산하여 사용하며, <strong>이 때 0점은 전혀 불편함이 없는 상태, 100점은 장애 및 불편함이 완전하게 있는 상태임을 나타냅니다.</strong></p>
+
+        <h3 class="section-title">신체 건강 결과</h3>
+
+        <!-- 전체 수면 그래프 영역 -->
+        <div class="chart-wrapper">
+            <!-- 왼쪽 라벨 column -->
+            <div class="chart-label-column">
+                
+                    <div class="chart-label">인지</div>
+                
+                    <div class="chart-label">이동</div>
+                
+                    <div class="chart-label">자가 돌봄</div>
+                
+                    <div class="chart-label">개인 관계</div>
+                
+                    <div class="chart-label">일상 생활 활동</div>
+                
+                    <div class="chart-label">사회적 참여</div>
+                
+            </div>
+
+            <!-- 오른쪽 막대 column (회색 테두리) -->
+
+            <div class="chart-bar-column">
+                <div class="chart-bar-box">
+                    
+                        <div class="chart-bar-row">
+                            <div class="chart-bar">
+                                <div class="chart-bar-gradient"></div>
+                                <div class="chart-bar-overlay" style="width: 87.5%;"></div>
+                                <div class="chart-score
+                                        
+                                            chart-score-outside
+                                        "
+                                     style="
+                                             
+                                                 left: calc(12.5% + 4px);
+                                             ">
+                                    1
+                                </div>
+
+                            </div>
+                        </div>
+                    
+                        <div class="chart-bar-row">
+                            <div class="chart-bar">
+                                <div class="chart-bar-gradient"></div>
+                                <div class="chart-bar-overlay" style="width: 62.5%;"></div>
+                                <div class="chart-score
+                                        
+                                            chart-score-outside
+                                        "
+                                     style="
+                                             
+                                                 left: calc(37.5% + 4px);
+                                             ">
+                                    3
+                                </div>
+
+                            </div>
+                        </div>
+                    
+                        <div class="chart-bar-row">
+                            <div class="chart-bar">
+                                <div class="chart-bar-gradient"></div>
+                                <div class="chart-bar-overlay" style="width: 100.0%;"></div>
+                                <div class="chart-score
+                                        
+                                            chart-score-outside
+                                        "
+                                     style="
+                                             
+                                                 left: calc(0.0% + 4px);
+                                             ">
+                                    0
+                                </div>
+
+                            </div>
+                        </div>
+                    
+                        <div class="chart-bar-row">
+                            <div class="chart-bar">
+                                <div class="chart-bar-gradient"></div>
+                                <div class="chart-bar-overlay" style="width: 100.0%;"></div>
+                                <div class="chart-score
+                                        
+                                            chart-score-outside
+                                        "
+                                     style="
+                                             
+                                                 left: calc(0.0% + 4px);
+                                             ">
+                                    0
+                                </div>
+
+                            </div>
+                        </div>
+                    
+                        <div class="chart-bar-row">
+                            <div class="chart-bar">
+                                <div class="chart-bar-gradient"></div>
+                                <div class="chart-bar-overlay" style="width: 62.5%;"></div>
+                                <div class="chart-score
+                                        
+                                            chart-score-outside
+                                        "
+                                     style="
+                                             
+                                                 left: calc(37.5% + 4px);
+                                             ">
+                                    3
+                                </div>
+
+                            </div>
+                        </div>
+                    
+                        <div class="chart-bar-row">
+                            <div class="chart-bar">
+                                <div class="chart-bar-gradient"></div>
+                                <div class="chart-bar-overlay" style="width: 75.0%;"></div>
+                                <div class="chart-score
+                                        
+                                            chart-score-outside
+                                        "
+                                     style="
+                                             
+                                                 left: calc(25.0% + 4px);
+                                             ">
+                                    2
+                                </div>
+
+                            </div>
+                        </div>
+                    
+
+                    <div class="chart-divider"></div>
+                    <div class="chart-x-axis">
+                        
+                            <span><strong>0</strong></span>
+                        
+                            <span><strong>1</strong></span>
+                        
+                            <span><strong>2</strong></span>
+                        
+                            <span><strong>3</strong></span>
+                        
+                            <span><strong>4</strong></span>
+                        
+                            <span><strong>5</strong></span>
+                        
+                            <span><strong>6</strong></span>
+                        
+                            <span><strong>7</strong></span>
+                        
+                            <span><strong>8</strong></span>
+                        
+                    </div>
+                </div>
+                <!-- 하단 범례 -->
+                <div class="chart-gradient-legend">
+                    <span>양호</span>
+                    <div class="chart-gradient-bar"></div>
+                    <span>위험</span>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="chart-wrapper">
+            <div class="chart-label-column">
+                <p class="description">1. <strong>인지</strong> : 집중, 기억, 문제해결, 학습활동 수행 정도 - <strong>1점</strong> (None)
+2. <strong>이동</strong> : 걷기, 올라가기, 내려가기, 몸을 구부리기 등 이동 관련 활동의 난이도 - <strong>3점</strong> (Mild)
+3. <strong>자가 돌봄</strong> : 씻기, 옷 입기, 식사, 화장실 이용 같은 기본적인 자기관리 기능 - <strong>0점</strong> (None)
+4. <strong>대인 관계</strong> : 가족, 친구, 동료 등과의 상호작용에서 겪는 갈등이나 어려움 - <strong>0점</strong> (None)
+5. <strong>일상 생활 활동</strong> : 가사, 직장, 학업, 경제활동 등 일상 생활의 역할 수행 정도 - <strong>3점</strong> (Mild)
+6. <strong>사회적 참여</strong> : 여가, 레저 활동, 모임 참석 등 사회적 활동에 참여하고 유지하는 정도 - <strong>2점</strong> (Mild)</p>
+            </div>
+        </div>
+
+        <h2 class="section-title">Depression, Anxiety and Stress</h2>
+        <div class="divider"></div>
+        <p class="description">Dass-21은 지난 일주일간의 우울, 불안, 스트레스 수준을 측정하기 위한 자기보고식 설문입니다. 이 평가를 통해 각 정서 상태의 심각도를 파악하여 정신건강 상태를 점검할 수 있습니다. 단, DASS-21은 공식적인 진단 도구가 아니며 현재 느끼는 증상의 정도를 가늠하는 지표일 뿐입니다. <strong>점수가 높을수록 해당 영역에서 더 큰 어려움을 겪고 있을 가능성을 의미합니다.</strong></p>
+
+        <h3 class="section-title">우울/불안/스트레스 결과</h3>
+
+        <!-- 전체 수면 그래프 영역 -->
+        <div class="chart-wrapper">
+            <!-- 왼쪽 라벨 column -->
+            <div class="chart-label-column">
+                
+                    <div class="chart-label">우울</div>
+                
+                    <div class="chart-label">불안</div>
+                
+                    <div class="chart-label">스트레스</div>
+                
+            </div>
+
+            <!-- 오른쪽 막대 column (회색 테두리) -->
+
+            <div class="chart-bar-column">
+                <div class="chart-bar-box">
+                    
+                        <div class="chart-bar-row">
+                            <div class="chart-bar">
+                                <div class="chart-bar-gradient"></div>
+                                <div class="chart-bar-overlay" style="width: 78.57%;"></div>
+                                <div class="chart-score
+                                        
+                                            chart-score-outside
+                                        "
+                                     style="
+                                             
+                                                 left: calc(21.43% + 4px);
+                                             ">
+                                    9
+                                </div>
+
+                            </div>
+                        </div>
+                    
+                        <div class="chart-bar-row">
+                            <div class="chart-bar">
+                                <div class="chart-bar-gradient"></div>
+                                <div class="chart-bar-overlay" style="width: 80.95%;"></div>
+                                <div class="chart-score
+                                        
+                                            chart-score-outside
+                                        "
+                                     style="
+                                             
+                                                 left: calc(19.05% + 4px);
+                                             ">
+                                    8
+                                </div>
+
+                            </div>
+                        </div>
+                    
+                        <div class="chart-bar-row">
+                            <div class="chart-bar">
+                                <div class="chart-bar-gradient"></div>
+                                <div class="chart-bar-overlay" style="width: 92.86%;"></div>
+                                <div class="chart-score
+                                        
+                                            chart-score-outside
+                                        "
+                                     style="
+                                             
+                                                 left: calc(7.14% + 4px);
+                                             ">
+                                    3
+                                </div>
+
+                            </div>
+                        </div>
+                    
+
+                    <div class="chart-divider"></div>
+                    <div class="chart-x-axis">
+                        
+                            <span><strong>0</strong></span>
+                        
+                            <span><strong>6</strong></span>
+                        
+                            <span><strong>12</strong></span>
+                        
+                            <span><strong>18</strong></span>
+                        
+                            <span><strong>24</strong></span>
+                        
+                            <span><strong>30</strong></span>
+                        
+                            <span><strong>36</strong></span>
+                        
+                            <span><strong>42</strong></span>
+                        
+                    </div>
+                </div>
+                <!-- 하단 범례 -->
+                <div class="chart-gradient-legend">
+                    <span>양호</span>
+                    <div class="chart-gradient-bar"></div>
+                    <span>위험</span>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="chart-wrapper">
+            <div class="chart-label-column">
+                <p class="description">1. <strong>우울</strong> : 무기력감, 자존감 저하, 우울감, 비관성, 의욕 저하 등의 증상을 평가 - <strong>9점</strong> (정상)
+2. <strong>불안</strong> : 걱정, 긴장감, 공호아반응, 불안 증상, 자율 신경계 반응 등의 증상을 평가 - <strong>8점</strong> (경증 불안 상태)
+3. <strong>스트레스</strong> : 긴장, 과민성, 과도한 스트레스 반응, 참을성 부족, 압박 등의 증상을 평가 - <strong>3점</strong> (정상)</p>
+            </div>
+        </div>
+
+        <h2 class="section-title">Loneliness and Social Relationships</h2>
+        <div class="divider"></div>
+        <p class="description">Loneliness and Social Isolation Scale(외로움 및 사회적 고립 척도)를 기반으로 외로움과 사회적 관계 수준을 평가한 결과입니다. 각 항목 점수는 0점부터 16점 사이로 산출됩니다. 점수가 높을수록 해당 영역에서 외로움이 크거나 사회적 연결이 취약함을 의미합니다. 특히 <strong>외로움 3점 이상, 사회적 지지 4점 이상, 사회적 관계망 4점 이상인 경우 고위험 수준으로 분류할 수 있습니다.</strong></p>
+
+        <h3 class="section-title">외로움 및 사회적 관계 결과</h3>
+
+        <!-- 전체 수면 그래프 영역 -->
+        <div class="chart-wrapper">
+            <!-- 왼쪽 라벨 column -->
+            <div class="chart-label-column">
+                
+                    <div class="chart-label">외로움</div>
+                
+                    <div class="chart-label">사회적 지지</div>
+                
+                    <div class="chart-label">사회적 관계망</div>
+                
+            </div>
+
+            <!-- 오른쪽 막대 column (회색 테두리) -->
+
+            <div class="chart-bar-column">
+                <div class="chart-bar-box">
+                    
+                        <div class="chart-bar-row">
+                            <div class="chart-bar">
+                                <div class="chart-bar-gradient"></div>
+                                <div class="chart-bar-overlay" style="width: 100.0%;"></div>
+                                <div class="chart-score
+                                        
+                                            chart-score-outside
+                                        "
+                                     style="
+                                             
+                                                 left: calc(0.0% + 4px);
+                                             ">
+                                    0
+                                </div>
+
+                            </div>
+                        </div>
+                    
+                        <div class="chart-bar-row">
+                            <div class="chart-bar">
+                                <div class="chart-bar-gradient"></div>
+                                <div class="chart-bar-overlay" style="width: 100.0%;"></div>
+                                <div class="chart-score
+                                        
+                                            chart-score-outside
+                                        "
+                                     style="
+                                             
+                                                 left: calc(0.0% + 4px);
+                                             ">
+                                    0
+                                </div>
+
+                            </div>
+                        </div>
+                    
+                        <div class="chart-bar-row">
+                            <div class="chart-bar">
+                                <div class="chart-bar-gradient"></div>
+                                <div class="chart-bar-overlay" style="width: 66.67%;"></div>
+                                <div class="chart-score
+                                        
+                                            chart-score-outside
+                                        "
+                                     style="
+                                             
+                                                 left: calc(33.33% + 4px);
+                                             ">
+                                    2
+                                </div>
+
+                            </div>
+                        </div>
+                    
+
+                    <div class="chart-divider"></div>
+                    <div class="chart-x-axis">
+                        
+                            <span><strong>0</strong></span>
+                        
+                            <span><strong>1</strong></span>
+                        
+                            <span><strong>2</strong></span>
+                        
+                            <span><strong>3</strong></span>
+                        
+                            <span><strong>4</strong></span>
+                        
+                            <span><strong>5</strong></span>
+                        
+                            <span><strong>6</strong></span>
+                        
+                    </div>
+                </div>
+                <!-- 하단 범례 -->
+                <div class="chart-gradient-legend">
+                    <span>양호</span>
+                    <div class="chart-gradient-bar"></div>
+                    <span>위험</span>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="chart-wrapper">
+            <div class="chart-label-column">
+                <p class="description">1. <strong>외로움</strong> : 일상생활에서 느끼는 외로움 - <strong>0점</strong> (정상)
+2. <strong>사회적 지지</strong> : 주변으로부터 받는 정서적, 물질적 지원 - <strong>0점</strong> (정상)
+3. <strong>사회적 관계망</strong> : 현재 주변에 교류하는 사람 및 사회적 연결망 - <strong>2점</strong> (정상)</p>
+            </div>
+        </div>
+
+        <h2 class="section-title">Feedback and Recommendation</h2>
+        <div class="divider"></div>
+        <p class="description">정신건강 자가 평가 결과 및 피드백에 대해 궁금한 사항이나 추가 상담을 원하시면 <strong>미소봇</strong>을 통해 질문 하시면 개인의 결과지에 따라 맞춤형 응답 서비스가 제공됩니다.</p>
+
+    </div>
+</div>
+</body>
+</html>
