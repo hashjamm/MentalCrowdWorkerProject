@@ -30,7 +30,7 @@ from MentalCrowdWorkerProjectApp.models import BasicInfo, StressFactors, JobSati
     SleepHealth, GeneralHealth, Emotion, Loneliness
 from MentalCrowdWorkerProjectApp.serializers import BasicInfoSerializer, StressFactorsSerializer, \
     JobSatisfactionSerializer, JobSatisfactionStressFactorsSerializer, PSQISerializer, WHODASSerializer, \
-    DASS21Serializer, LSISSerializer, WholeScoresSerializer
+    DASS21Serializer, LSISSerializer, WholeScoresWithPathSerializer, ReportRequestSerializer, WholeScoresSerializer
 
 
 # Create your views here.
@@ -458,7 +458,7 @@ class GeneralHealthAPIView(APIView):
             whodas_k_status = "매우 양호한 상태" if whodas_k < 18 \
                 else "건강기능에 주의가 필요한 상태" if whodas_k < 31 \
                 else "건강기능에 어려움이 있는 상태" if whodas_k < 43 \
-                else "건강기능에 위험이 있는 상태" if whodas_k < 61 \
+                else "건강기능이 위험한 상태" if whodas_k < 61 \
                 else "건강기능에 심각한 위험이 있는 상태"
 
             # 주희쌤께서 전달 주신 각 세부 항목별 점수에 대한 상태 기준에 따름. 공인된 것인지는 모르겠음
@@ -801,27 +801,24 @@ class WholeSurveysAPIView(APIView):
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
 
-    @csrf_exempt
-    def post(self, request):
+    @staticmethod
+    def evaluate_surveys_from_data(validated_data):
+        """
+        validated_data를 기반으로 모든 설문을 평가하고 결과를 병합하여 반환합니다.
+        이 로직은 WholeSurveysAPIView.post에서 분리되어 다른 곳에서도 재사용 가능합니다.
+        """
+        # 제공된 데이터에서 각 설문 데이터 추출
+        PSQI_data = validated_data.get('PSQI_data', {})
+        WHODAS_data = validated_data.get('WHODAS_data', {})
+        DASS21_data = validated_data.get('DASS21_data', {})
+        LSIS_data = validated_data.get('LSIS_data', {})
 
-        serialized_data = WholeScoresSerializer(data=request.data)
+        sub_dict1, sub_dict2, sub_dict3, sub_dict4 = {}, {}, {}, {}
 
-        if serialized_data.is_valid():
-
-            # instance = serialized_data.create(serialized_data.validated_data)
-
-            validated_data = serialized_data.validated_data
-
-            # 각 스코어 계산에 필요한 데이터에 접근
-            PSQI_data = validated_data.get('PSQI_data')
-            WHODAS_data = validated_data.get('WHODAS_data')
-            DASS21_data = validated_data.get('DASS21_data')
-            LSIS_data = validated_data.get('LSIS_data')
-
-            instance = SleepHealth(**PSQI_data)
-            input_data = [instance]
-            result = SleepHealthAPIView.evaluate_sleep_health(input_data)
-
+        # 각 설문 데이터로 모델 인스턴스 생성 및 평가
+        if PSQI_data:
+            psqi_instance = SleepHealth(**PSQI_data)
+            psqi_result = SleepHealthAPIView.evaluate_sleep_health([psqi_instance])[0]
             keys_to_extract = ['sleep_quality_score', 'sleep_quality_status',
                                'sleep_latency_score', 'sleep_latency_status',
                                'sleep_duration_score', 'sleep_duration_status',
@@ -830,13 +827,11 @@ class WholeSurveysAPIView(APIView):
                                'use_of_sleep_medication_score', 'use_of_sleep_medication_status',
                                'daytime_dysfunction_score', 'daytime_dysfunction_status',
                                'psqi_k', 'psqi_k_status']
+            sub_dict1 = {key: psqi_result[key] for key in keys_to_extract if key in psqi_result}
 
-            sub_dict1 = {key: result[0][key] for key in keys_to_extract if key in result[0]}
-
-            instance = GeneralHealth(**WHODAS_data)
-            input_data = [instance]
-            result = GeneralHealthAPIView.evaluate_general_health(input_data)
-
+        if WHODAS_data:
+            whodas_instance = GeneralHealth(**WHODAS_data)
+            whodas_result = GeneralHealthAPIView.evaluate_general_health([whodas_instance])[0]
             keys_to_extract = ['cognition_score', 'cognition_status',
                                'mobility_score', 'mobility_status',
                                'self_care_score', 'self_care_status',
@@ -844,39 +839,42 @@ class WholeSurveysAPIView(APIView):
                                'life_activities_score', 'life_activities_status',
                                'participation_score', 'participation_status',
                                'whodas_k', 'whodas_k_status']
+            sub_dict2 = {key: whodas_result[key] for key in keys_to_extract if key in whodas_result}
 
-            sub_dict2 = {key: result[0][key] for key in keys_to_extract if key in result[0]}
-
-            instance = Emotion(**DASS21_data)
-            input_data = [instance]
-            result = EmotionAPIView.evaluate_emotion(input_data)
-
+        if DASS21_data:
+            dass_instance = Emotion(**DASS21_data)
+            dass_result = EmotionAPIView.evaluate_emotion([dass_instance])[0]
             keys_to_extract = ['depression_score', 'depression_status',
                                'anxiety_score', 'anxiety_status',
                                'stress_score', 'stress_status',
                                'dass', 'dass_status']
+            sub_dict3 = {key: dass_result[key] for key in keys_to_extract if key in dass_result}
 
-            sub_dict3 = {key: result[0][key] for key in keys_to_extract if key in result[0]}
-
-            instance = Loneliness(**LSIS_data)
-            input_data = [instance]
-            result = LonelinessAPIView.evaluate_loneliness(input_data)
-
+        if LSIS_data:
+            lsis_instance = Loneliness(**LSIS_data)
+            lsis_result = LonelinessAPIView.evaluate_loneliness([lsis_instance])[0]
             keys_to_extract = ['loneliness_score', 'loneliness_status',
                                'social_support_score', 'social_support_status',
                                'social_network_score', 'social_network_status',
                                'lsis', 'lsis_status']
+            sub_dict4 = {key: lsis_result[key] for key in keys_to_extract if key in lsis_result}
 
-            sub_dict4 = {key: result[0][key] for key in keys_to_extract if key in result[0]}
+        return sub_dict1 | sub_dict2 | sub_dict3 | sub_dict4
 
-            merged_dict = sub_dict1 | sub_dict2 | sub_dict3 | sub_dict4
+    @csrf_exempt
+    def post(self, request):
+        serializer = WholeScoresSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+        try:
+            merged_dict = WholeSurveysAPIView.evaluate_surveys_from_data(serializer.validated_data)
             return Response(merged_dict, status=status.HTTP_200_OK)
-
-        else:
-            print(serialized_data.errors)
-
-            return Response(serialized_data.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response(
+                {'error': f'An error occurred during evaluation: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 class ReportAPIView(APIView):
@@ -887,42 +885,131 @@ class ReportAPIView(APIView):
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
 
+    @staticmethod
+    def _extract_evaluation_results(context: dict) -> dict:
+        """
+        Extracts a flat dictionary of evaluation results from the main report context.
+        This is for GET requests with mode=evaluate, to match the POST evaluation structure.
+        """
+        # Define the keys for each survey type
+        psqi_keys = [
+            'sleep_quality_score', 'sleep_quality_status', 'sleep_latency_score', 'sleep_latency_status',
+            'sleep_duration_score', 'sleep_duration_status', 'sleep_efficiency_score', 'sleep_efficiency_status',
+            'sleep_disturbance_score', 'sleep_disturbance_status', 'use_of_sleep_medication_score',
+            'use_of_sleep_medication_status', 'daytime_dysfunction_score', 'daytime_dysfunction_status',
+            'psqi_k', 'psqi_k_status'
+        ]
+        whodas_keys = [
+            'cognition_score', 'cognition_status', 'mobility_score', 'mobility_status',
+            'self_care_score', 'self_care_status', 'getting_along_score', 'getting_along_status',
+            'life_activities_score', 'life_activities_status', 'participation_score', 'participation_status',
+            'whodas_k', 'whodas_k_status'
+        ]
+        dass_keys = [
+            'depression_score', 'depression_status', 'anxiety_score', 'anxiety_status',
+            'stress_score', 'stress_status', 'dass', 'dass_status'
+        ]
+        lsis_keys = [
+            'loneliness_score', 'loneliness_status', 'social_support_score', 'social_support_status',
+            'social_network_score', 'social_network_status', 'lsis', 'lsis_status'
+        ]
+
+        # Extract the data from the context
+        results = {}
+        for key in psqi_keys + whodas_keys + dass_keys + lsis_keys:
+            if key in context:
+                results[key] = context[key]
+        
+        return results
+
     @csrf_exempt
     def get(self, request):
         user_id = request.query_params.get('id')
-        mode = request.query_params.get('mode', 'json')  # 기본은 JSON 반환
+        mode = request.query_params.get('mode', 'context') # Default to 'context'
+        html_option = request.query_params.get('html', 'false').lower() == 'true'
 
         if not user_id:
-            return Response({'error': 'user_id is required'}, status=400)
+            return Response({'error': 'user_id는 필수 파라미터입니다.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        if mode == 'html':
-            # HTML 템플릿 렌더링 반환 (예: 브라우저 테스트 용)
-            context = ReportAPIView.build_report_context(user_id)
-            html = render_to_string("report_template.html", context)
-            return HttpResponse(html)
-        else:
-            # JSON 형태로 보고서 데이터 반환 (예: 클라이언트 앱용)
-            context = ReportAPIView.build_report_context(user_id)
+        try:
+            # Build the full context once.
+            context = self.build_report_context_from_id(user_id)
+
+            # HTML response has top priority.
+            if html_option:
+                html = render_to_string("report_template.html", context)
+                return HttpResponse(html)
+
+            # If not HTML, handle JSON responses based on mode.
+            if mode == 'evaluate':
+                evaluation_results = self._extract_evaluation_results(context)
+                return Response(evaluation_results)
+            
+            # Default case (mode='context' or any other value)
             return Response(context)
+
+        except NotFound:
+             return Response({'error': f'ID {user_id}에 해당하는 사용자를 찾을 수 없습니다.'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response(
+                {'error': '서버 내부 오류로 리포트 조회에 실패했습니다.'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
     @csrf_exempt
     def post(self, request):
-        user_id = request.data.get('id')
-
-        if not user_id:
-            return Response({'error': 'user_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+        mode = request.query_params.get('mode', 'context')
+        html_option = request.query_params.get('html', 'false').lower() == 'true'
+        request_data = request.data
 
         try:
-            result = ReportAPIView.generate_report_pdf(user_id)  # pdf_path, file_name 등을 포함한 dict 반환
+            if 'id' in request_data:
+                serializer_class = ReportRequestSerializer
+                generation_func = self.generate_report_pdf_from_id
+            else:
+                serializer_class = WholeScoresWithPathSerializer
+                generation_func = self.generate_report_pdf_from_data
 
-            return Response({
-                'pdf_path': result['pdf_path'],
-                'file_name': result['file_name'],
-                'status': 'success'
-            }, status=status.HTTP_200_OK)
+            serializer = serializer_class(data=request_data)
+            if not serializer.is_valid():
+                return Response(
+                    {'error': '잘못된 요청 데이터입니다.', 'details': serializer.errors},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            validated_data = serializer.validated_data
+
+            # Context is needed for HTML or any JSON response.
+            is_context_needed = True
+
+            # Generate PDF and get context back.
+            result_context = generation_func(validated_data, context_option=is_context_needed)
+
+            # HTML response has top priority.
+            if html_option:
+                html = render_to_string("report_template.html", result_context)
+                return HttpResponse(html)
+
+            # Handle JSON responses based on mode.
+            if mode == 'evaluate':
+                if 'id' in validated_data:
+                    return Response(
+                        {'error': "mode=evaluate는 'id'와 함께 사용할 수 없습니다. 전체 설문 데이터를 제공해주세요."},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+                evaluation_results = self._extract_evaluation_results(result_context)
+                return Response({
+                    'status': 'success',
+                    'evaluation_results': evaluation_results
+                }, status=status.HTTP_200_OK)
+            
+            # Default case (mode='context').
+            return Response({'status': 'success', 'context': result_context}, status=status.HTTP_200_OK)
 
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(
+                {'error': '서버 내부 오류로 리포트 생성에 실패했습니다.'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
     @staticmethod
     def load_description(relative_path, name=None, score=None, score_status=None, score1=None, status1=None,
@@ -980,72 +1067,6 @@ class ReportAPIView(APIView):
 
         return text
 
-    # LLM 기반으로 답변을 생성해보는 시도를 진행해보았으나, 실제로도 답변이 나오기는 하는데... 뭔가 api가 과하게 무거워지는 것 같음.
-    # 추가적으로 내 로컬 GPU 파워에 의존적이게 되고, 통신 과정 때문에 호출 시간이 증가함.
-    # 아무래도 수작업이 맞을 것 같음.
-
-    # @staticmethod
-    # def generate_ollama_summary(psqi_k_status=None, whodas_k_status=None, dass_status=None, lsis_status=None):
-    #     """
-    #     Ollama를 사용하여 로컬에서 LLM 요약을 생성합니다. (무료)
-    #     """
-    #     try:
-    #         prompt = f"""다음은 사용자의 정신건강 평가 결과입니다. 4개 영역의 결과를 바탕으로 한 줄 혹은 두 줄로 종합적인 평가를 해주세요.
-
-    #             - 수면 건강: {psqi_k_status} (PSQI_K에 의한 평가 결과)
-    #             - 신체 건강: {whodas_k_status} (WHODAS_K에 의한 평가 결과)
-    #             - 정신 건강: {dass_status} (DASS21에 의한 평가 결과)
-    #             - 사회적 관계: {lsis_status} (LSIS에 의한 평가 결과)
-
-    #             위 결과를 종합하여 한 문장 혹은 두 문장으로 평가해주세요. 비슷한 의미의 단어는 중복하지 않도록 해주세요. 
-    #             자연스러운 한국어 문장이여야 합니다. 존댓말 표현을 사용해주세요. 그리고 문장의 처음과 끝에 따옴표를 쓰지 마세요.
-    #             문장의 시작에는 "요약하면,", "종합해보면," 등의 요약하는 표현을 사용하도록 해주세요.
-    #             같은 평가 결과 표현인 경우는 묶어서 표시하도록 하고, 아래와 같은 표현들을 묶을 수 있습니다.
-    #                 "양호한 상태": [
-    #                     "숙면을 취하고 있는 상태",
-    #                     "매우 양호한 상태",
-    #                     "정서적으로 건강한 상태",
-    #                     "사회적 관계가 건강한 상태",
-    #                 ],
-    #                 "주의가 필요한 상태": [
-    #                     "수면 건강에 주의가 필요한 상태",
-    #                     "건강기능에 주의가 필요한 상태",
-    #                 ],
-    #                 "위험이 있는 상태": [
-    #                     "수면 건강이 위험한 상태",
-    #                     "건강기능에 위험이 있는 상태",
-    #                 ],
-    #                 "어려움이 있는 상태": [
-    #                     "건강기능에 어려움이 있는 상태",
-    #                     "중간단계의 정서적 어려움이 있는 상태",
-    #                 ]
-    #             완성된 문장으로 마무리해주세요."""
-
-
-    #         response = requests.post('http://localhost:11434/api/generate', 
-    #                                json={
-    #                                    'model': 'mistral',  # 또는 'llama2', 'codellama' 등
-    #                                    'prompt': prompt,
-    #                                    'stream': False
-    #                                }, 
-    #                                timeout=30)
-            
-    #         if response.status_code == 200:
-    #             return response.json()['response'].strip()
-    #         else:
-    #             return ReportAPIView.generate_fallback_summary(psqi_k_status, whodas_k_status, dass_status, lsis_status)
-                
-    #     except Exception as e:
-    #         print(f"Ollama 요약 생성 실패: {e}")
-    #         return ReportAPIView.generate_fallback_summary(psqi_k_status, whodas_k_status, dass_status, lsis_status)
-
-    # @staticmethod
-    # def generate_fallback_summary(psqi_k_status, whodas_k_status, dass_status, lsis_status):
-    #     """
-    #     LLM 사용이 불가능할 때 사용하는 기본 템플릿 기반 요약
-    #     """
-    #     return ""
-
     @staticmethod
     def load_csv_data(file_name, has_header=True):
         """
@@ -1086,7 +1107,7 @@ class ReportAPIView(APIView):
     @staticmethod
     def summary_refined(psqi_k_status=None, whodas_k_status=None, dass_status=None, lsis_status=None):
         """
-        종합적인 평가를 생성합니다.
+        종합적인 평가를 생성합니다。
         """
         df = ReportAPIView.load_csv_data('health_status_summary_table.csv')
         
@@ -1124,24 +1145,10 @@ class ReportAPIView(APIView):
             raise ValueError(f"코드 {code}에 해당하는 요약 정보를 찾을 수 없습니다. CSV 파일을 확인해주세요.")
 
     @staticmethod
-    def build_report_context(user_id: int) -> dict:
-        # 사용자 이름 불러오기
-        basic_info = get_object_or_404(BasicInfo, id=user_id)
-        name = basic_info.name
-
-        # 가장 최근 설문 데이터 1개 가져오기
-        psqi_latest_record = SleepHealth.objects.filter(participant_id=user_id).order_by('-id').first()
-        whodas_latest_record = GeneralHealth.objects.filter(participant_id=user_id).order_by('-id').first()
-        dass_latest_record = Emotion.objects.filter(participant_id=user_id).order_by('-id').first()
-        lsis_latest_record = Loneliness.objects.filter(participant_id=user_id).order_by('-id').first()
-
-        # 결과 평가
-        psqi_result = SleepHealthAPIView.evaluate_sleep_health([psqi_latest_record])[0] if psqi_latest_record else {}
-        whodas_result = GeneralHealthAPIView.evaluate_general_health([whodas_latest_record])[
-            0] if whodas_latest_record else {}
-        dass_result = EmotionAPIView.evaluate_emotion([dass_latest_record])[0] if dass_latest_record else {}
-        lsis_result = LonelinessAPIView.evaluate_loneliness([lsis_latest_record])[0] if lsis_latest_record else {}
-
+    def _build_context_from_evaluated_results(psqi_result: dict, whodas_result: dict, dass_result: dict, lsis_result: dict, name: str) -> dict:
+        """
+        평가된 결과들을 바탕으로 리포트 context를 생성하는 공통 헬퍼 함수입니다.
+        """
         # 최종 결과 점수
         psqi_k = psqi_result.get('psqi_k', 0)
         whodas_k = whodas_result.get('whodas_k', 0)
@@ -1215,7 +1222,7 @@ class ReportAPIView(APIView):
         social_support_score = lsis_result.get('social_support_score', 0)
         social_network_score = lsis_result.get('social_network_score', 0)
 
-        # 감정 세부 상태
+        # 외로움 세부 상태
         loneliness_status = lsis_result.get('loneliness_status', '')
         social_support_status = lsis_result.get('social_support_status', '')
         social_network_status = lsis_result.get('social_network_status', '')
@@ -1500,6 +1507,7 @@ class ReportAPIView(APIView):
                 "status": social_support_status,
                 "percent": round(social_support_score / 6 * 100, 2),
                 "rev_percent": 100 - round(social_support_score / 6 * 100, 2),
+                "status": social_support_status,
             },
             {
                 "label": "사회적 관계망",
@@ -1513,44 +1521,142 @@ class ReportAPIView(APIView):
         return context
 
     @staticmethod
-    def generate_report_pdf(user_id):
+    def build_report_context_from_id(user_id: int) -> dict:
+        # 사용자 이름 불러오기
+        basic_info = get_object_or_404(BasicInfo, id=user_id)
+        name = basic_info.name
+
+        # 가장 최근 설문 데이터 1개 가져오기
+        psqi_latest_record = SleepHealth.objects.filter(participant_id=user_id).order_by('-id').first()
+        whodas_latest_record = GeneralHealth.objects.filter(participant_id=user_id).order_by('-id').first()
+        dass_latest_record = Emotion.objects.filter(participant_id=user_id).order_by('-id').first()
+        lsis_latest_record = Loneliness.objects.filter(participant_id=user_id).order_by('-id').first()
+
+        # 결과 평가
+        psqi_result = SleepHealthAPIView.evaluate_sleep_health([psqi_latest_record])[0] if psqi_latest_record else {}
+        whodas_result = GeneralHealthAPIView.evaluate_general_health([whodas_latest_record])[0] if whodas_latest_record else {}
+        dass_result = EmotionAPIView.evaluate_emotion([dass_latest_record])[0] if dass_latest_record else {}
+        lsis_result = LonelinessAPIView.evaluate_loneliness([lsis_latest_record])[0] if lsis_latest_record else {}
+
+        return ReportAPIView._build_context_from_evaluated_results(psqi_result, whodas_result, dass_result, lsis_result, name)
+
+    @staticmethod
+    def build_report_context_from_data(validated_data: dict) -> dict:
+        """
+        WholeScoresWithPathSerializer 데이터 기반으로 context를 생성합니다.
+        """
+        # 제공된 데이터에서 각 설문 데이터 추출
+        PSQI_data = validated_data.get('PSQI_data', {})
+        WHODAS_data = validated_data.get('WHODAS_data', {})
+        DASS21_data = validated_data.get('DASS21_data', {})
+        LSIS_data = validated_data.get('LSIS_data', {})
+        
+        # 기본 이름 설정 (데이터에서 제공되지 않으면 기본값 사용)
+        name = validated_data.get('name', '설문자')
+        
+        # 각 설문 데이터로 모델 인스턴스 생성
+        psqi_instance = SleepHealth(**PSQI_data) if PSQI_data else None
+        whodas_instance = GeneralHealth(**WHODAS_data) if WHODAS_data else None
+        dass_instance = Emotion(**DASS21_data) if DASS21_data else None
+        lsis_instance = Loneliness(**LSIS_data) if LSIS_data else None
+        
+        # 결과 평가
+        psqi_result = SleepHealthAPIView.evaluate_sleep_health([psqi_instance])[0] if psqi_instance else {}
+        whodas_result = GeneralHealthAPIView.evaluate_general_health([whodas_instance])[0] if whodas_instance else {}
+        dass_result = EmotionAPIView.evaluate_emotion([dass_instance])[0] if dass_instance else {}
+        lsis_result = LonelinessAPIView.evaluate_loneliness([lsis_instance])[0] if lsis_instance else {}
+        
+        return ReportAPIView._build_context_from_evaluated_results(psqi_result, whodas_result, dass_result, lsis_result, name)
+
+    @staticmethod
+    def generate_report_pdf_from_id(validated_data, context_option=False):
         """
         사용자 ID 기반으로 PDF 리포트를 생성 (playwright 기반).
         """
-        context = ReportAPIView.build_report_context(user_id)
+        user_id = validated_data.get('id')
+        pdf_path = validated_data.get('pdf_path')
+        file_name = validated_data.get('file_name')
+
+        context = ReportAPIView.build_report_context_from_id(user_id)
         html_string = render_to_string('report_template.html', context)
 
         # static 경로 수동 치환
         static_root = settings.STATIC_ROOT.replace('\\', '/')
         html_string = html_string.replace('/static/', f'file:///{static_root}/')
 
-        file_name = f"user_{user_id}_report.pdf"
-
-        output_dir = None
-        output_path = None
-
         # 1. 저장 경로 설정
-        if platform.system() == 'Windows':
-            output_dir = os.path.join('C:\\', 'Users', os.getlogin(), 'Documents', 'pdf_outputs')
-        else:
-            output_dir = '/data001/smartal/reports/generated_reports'
-        os.makedirs(output_dir, exist_ok=True)
-        output_path = os.path.join(output_dir, file_name)
+        os.makedirs(pdf_path, exist_ok=True)
+        output_path = os.path.join(pdf_path, file_name)
 
         # 2. HTML 임시 파일 생성
         with tempfile.NamedTemporaryFile('w', delete=False, suffix='.html', encoding='utf-8') as tmp:
             tmp.write(html_string)
             tmp_html_path = tmp.name
 
-        # 3. Playwright를 사용한 PDF 생성
-        with sync_playwright() as p:
-            browser = p.chromium.launch()
-            page = browser.new_page()
-            page.goto(f'file:///{tmp_html_path}', wait_until='networkidle')
-            page.pdf(path=output_path, format='A4', margin={'top': '20px', 'bottom': '20px'}, print_background=True)
-            browser.close()
+        try:
+            # 3. Playwright를 사용한 PDF 생성
+            with sync_playwright() as p:
+                browser = p.chromium.launch()
+                page = browser.new_page()
+                page.goto(f'file:///{tmp_html_path}', wait_until='networkidle')
+                page.pdf(path=output_path, format='A4', margin={'top': '20px', 'bottom': '20px'}, print_background=True)
+                browser.close()
+        finally:
+            # 4. 임시 HTML 파일 정리
+            try:
+                os.remove(tmp_html_path)
+            except OSError:
+                # 파일이 이미 삭제되었거나 삭제할 수 없는 경우 무시
+                pass
 
-        return {
-            'pdf_path': output_path,
-            'file_name': file_name,
-        }
+        if context_option:
+            return context
+        else:
+            return None
+
+    @staticmethod
+    def generate_report_pdf_from_data(validated_data, context_option=False):
+        """
+        WholeScoresWithPathSerializer 데이터 기반으로 PDF 리포트를 생성 (playwright 기반).
+        """
+        # validated_data에서 필요한 정보 추출
+        pdf_path = validated_data.get('pdf_path')
+        file_name = validated_data.get('file_name')
+        
+        # context 생성 (새로운 메서드 필요)
+        context = ReportAPIView.build_report_context_from_data(validated_data)
+        html_string = render_to_string('report_template.html', context)
+
+        # static 경로 수동 치환
+        static_root = settings.STATIC_ROOT.replace('\\', '/')
+        html_string = html_string.replace('/static/', f'file:///{static_root}/')
+
+        # 1. 저장 경로 설정
+        os.makedirs(pdf_path, exist_ok=True)
+        output_path = os.path.join(pdf_path, file_name)
+
+        # 2. HTML 임시 파일 생성
+        with tempfile.NamedTemporaryFile('w', delete=False, suffix='.html', encoding='utf-8') as tmp:
+            tmp.write(html_string)
+            tmp_html_path = tmp.name
+
+        try:
+            # 3. Playwright를 사용한 PDF 생성
+            with sync_playwright() as p:
+                browser = p.chromium.launch()
+                page = browser.new_page()
+                page.goto(f'file:///{tmp_html_path}', wait_until='networkidle')
+                page.pdf(path=output_path, format='A4', margin={'top': '20px', 'bottom': '20px'}, print_background=True)
+                browser.close()
+        finally:
+            # 4. 임시 HTML 파일 정리
+            try:
+                os.remove(tmp_html_path)
+            except OSError:
+                # 파일이 이미 삭제되었거나 삭제할 수 없는 경우 무시
+                pass
+
+        if context_option:
+            return context
+        else:
+            return None
