@@ -36,8 +36,16 @@ class JobSatisfaction(models.Model):
     def save(self, *args, **kwargs):
         with transaction.atomic():
             super().save(*args, **kwargs)
-        # ManyToMany 필드는 save() 이후 별도로 처리해야 합니다.
-        # 예: self.stress_factors.set([...])
+
+            through_model = self.stress_factors.through
+            through_model.objects.filter(job_satisfaction=self).delete()
+
+            stress_factors_objects = [
+                through_model(job_satisfaction=self, stress_factors=stress_factor)
+                for stress_factor in self.stress_factors.all()
+            ]
+
+            through_model.objects.bulk_create(stress_factors_objects)
 
 
 class JobSatisfactionStressFactors(models.Model):

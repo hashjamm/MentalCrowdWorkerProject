@@ -86,3 +86,22 @@ class WholeScoresSerializer(serializers.Serializer):
     WHODAS_data = WHODASSerializer()
     DASS21_data = DASS21Serializer()
     LSIS_data = LSISSerializer()
+
+
+class WholeScoresWithPathSerializer(serializers.Serializer):
+    PSQI_data = PSQISerializer()
+    WHODAS_data = WHODASSerializer()
+    DASS21_data = DASS21Serializer()
+    LSIS_data = LSISSerializer()
+    pdf_path = serializers.CharField()
+    file_name = serializers.CharField()
+
+
+class ReportRequestSerializer(serializers.Serializer):
+    """
+    리포트 생성 요청을 위한 serializer입니다.
+    id만으로 DB에서 데이터를 조회하여 리포트를 생성하는 경우에 사용됩니다.
+    """
+    id = serializers.IntegerField(help_text="사용자 ID")
+    pdf_path = serializers.CharField(help_text="PDF 저장 경로")
+    file_name = serializers.CharField(help_text="PDF 파일명")

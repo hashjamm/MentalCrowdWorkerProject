@@ -152,10 +152,10 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'MentalCrowdWorkerProjectApp', 'static')
 ]
 
-# # OpenAI API 설정 (선택사항)
+# # OpenAI API 설정 (실제 적용은 안함함)
 # OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', None)
 
-# # Hugging Face API 설정 (무료 한국어 모델용)
+# # Hugging Face API 설정 (무료 한국어 모델용, 실제 적용은 안함)
 # HUGGINGFACE_API_KEY = os.environ.get('HUGGINGFACE_API_KEY', None)
 
 
