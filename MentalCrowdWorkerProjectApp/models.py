@@ -8,15 +8,20 @@ class BasicInfo(models.Model):
     name = models.CharField(max_length=100, null=False, blank=False, verbose_name="사용자 이름")
     sex = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(2)], verbose_name="성별")
     age = models.IntegerField(validators=[MinValueValidator(0)], verbose_name="연령")
-    edu_level = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)], verbose_name="최종 학력")
+    edu_level = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)], verbose_name="최종 학력") 
+    # 1: 고졸, 2: 전문대졸, 3: 대졸, 4: 석사, 5: 박사
     edu_level_etc = models.TextField(blank=True, null=True, verbose_name="기타 최종 학력 입력 내용")
     marital_status = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(6)], verbose_name="결혼 상태")
+    # 1: 미혼, 2: 기혼, 3: 이혼, 4: 사별, 5: 별거, 6: 기타
     income_level = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(3)],
                                        verbose_name="사회 경제 상태")
+    # 1: 상, 2: 중, 3: 하
     career_duration = models.FloatField(validators=[MinValueValidator(0)], verbose_name="경력 기간")
     task_type = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(2)], verbose_name="업무 내용")
+    # 1: 데이터 수집/가공, 2: 번역/문서작업
     task_description = models.TextField(verbose_name="업무 내용 입력 문자열", null=True)
     occupation_type = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(3)], verbose_name="직업 형태")
+    # 1: 전업, 2: 부업, 3: 기타
     interest = models.TextField(verbose_name="주요 관심 입력 문자열", null=True)
 
 
