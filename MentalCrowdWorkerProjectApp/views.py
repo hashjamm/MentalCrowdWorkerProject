@@ -1,8 +1,8 @@
 import datetime
 import os
-import subprocess
 from pathlib import Path
 import re
+from unittest import result
 import pandas as pd  # CSV 파일 읽기용
 
 from django.http import HttpResponse
@@ -10,16 +10,14 @@ from django.shortcuts import get_object_or_404
 from django.apps import apps
 from django.template.loader import render_to_string
 from django.forms import model_to_dict
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
+# from django.utils.decorators import method_decorator
+# from django.views.decorators.csrf import csrf_exempt
 from rest_framework import status
 from rest_framework.exceptions import NotFound
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from matplotlib import colors as mcolors
 
-import platform
 import tempfile
 
 from django.conf import settings
@@ -38,9 +36,9 @@ class BasicInfoAPIView(APIView):
     renderer_classes = [JSONRenderer]
     permission_classes = []
 
-    @method_decorator(csrf_exempt)
-    def dispatch(self, request, *args, **kwargs):
-        return super().dispatch(request, *args, **kwargs)
+    # @method_decorator(csrf_exempt)
+    # def dispatch(self, request, *args, **kwargs):
+    #     return super().dispatch(request, *args, **kwargs)
 
     def get(self, request):
 
@@ -51,7 +49,6 @@ class BasicInfoAPIView(APIView):
         else:
             return self.get_personal_basic_info(request, user_id)
 
-    @csrf_exempt
     def get_whole_basic_info(self, request):
 
         queryset = BasicInfo.objects.all()
@@ -66,7 +63,6 @@ class BasicInfoAPIView(APIView):
 
             raise NotFound("BasicInfo 데이터가 존재하지 않습니다.")
 
-    @csrf_exempt
     def get_personal_basic_info(self, request, user_id):
 
         queryset = BasicInfo.objects.get(id=user_id)
@@ -86,7 +82,6 @@ class StressFactorsAPIView(APIView):
     renderer_classes = [JSONRenderer]
     permission_classes = []
 
-    @csrf_exempt
     def get(self, request):
 
         queryset = StressFactors.objects.all()
@@ -106,9 +101,9 @@ class JobSatisfactionAPIView(APIView):
     renderer_classes = [JSONRenderer]
     permission_classes = []
 
-    @method_decorator(csrf_exempt)
-    def dispatch(self, request, *args, **kwargs):
-        return super().dispatch(request, *args, **kwargs)
+    # @method_decorator(csrf_exempt)
+    # def dispatch(self, request, *args, **kwargs):
+    #     return super().dispatch(request, *args, **kwargs)
 
     def get(self, request):
 
@@ -119,7 +114,6 @@ class JobSatisfactionAPIView(APIView):
         else:
             return self.get_personal_job_satisfaction(request, user_id)
 
-    @csrf_exempt
     def get_whole_job_satisfaction(self, request):
 
         queryset = JobSatisfaction.objects.all()
@@ -134,7 +128,6 @@ class JobSatisfactionAPIView(APIView):
 
             raise NotFound("JobSatisfaction 데이터가 존재하지 않습니다.")
 
-    @csrf_exempt
     def get_personal_job_satisfaction(self, request, user_id):
 
         try:
@@ -159,9 +152,9 @@ class JobSatisfactionStressFactorsAPIView(APIView):
     renderer_classes = [JSONRenderer]
     permission_classes = []
 
-    @method_decorator(csrf_exempt)
-    def dispatch(self, request, *args, **kwargs):
-        return super().dispatch(request, *args, **kwargs)
+    # @method_decorator(csrf_exempt)
+    # def dispatch(self, request, *args, **kwargs):
+    #     return super().dispatch(request, *args, **kwargs)
 
     def get(self, request):
 
@@ -172,7 +165,6 @@ class JobSatisfactionStressFactorsAPIView(APIView):
         else:
             return self.get_personal_job_satisfaction_stress_factors(request, user_id)
 
-    @csrf_exempt
     def get_whole_job_satisfaction_stress_factors(self, request):
 
         queryset = JobSatisfactionStressFactors.objects.all()
@@ -187,83 +179,22 @@ class JobSatisfactionStressFactorsAPIView(APIView):
 
             raise NotFound("JobSatisfactionStressFactors 데이터가 존재하지 않습니다.")
 
-    @csrf_exempt
     def get_personal_job_satisfaction_stress_factors(self, request, user_id):
 
         try:
 
-            basic_info = BasicInfo.objects.get(id=user_id)
-            result = []
+            queryset = JobSatisfactionStressFactors.objects.filter(job_satisfaction__participant_id=user_id)
+            serializer = JobSatisfactionStressFactorsSerializer(queryset, many=True)
+            result = serializer.data
 
-            for job_satisfaction in basic_info.job_satisfaction_set.all():
-                job_satisfaction_stress_factors = job_satisfaction.job_satisfaction_stress_factors_set.all()
-                serialized_data = JobSatisfactionStressFactorsSerializer(job_satisfaction_stress_factors,
-                                                                         many=True).data
+            return Response(result, status=status.HTTP_200_OK)
 
-                result.append(serialized_data)
+        except Exception as e:
 
-            return Response(result)
-
-        except BasicInfo.DoesNotExist:
-
-            raise NotFound("BasicInfo 데이터가 존재하지 않습니다.")
-
-        except JobSatisfaction.DoesNotExist:
-
-            raise NotFound("JobSatisfaction 데이터가 존재하지 않습니다.")
-
-        except JobSatisfactionStressFactors.DoesNotExist:
-
-            raise NotFound("JobSatisfactionStressFactors 데이터가 존재하지 않습니다.")
+            return Response({"error": "서버 내부 오류가 발생했습니다."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-class SleepHealthAPIView(APIView):
-    renderer_classes = [JSONRenderer]
-    permission_classes = []
-
-    @method_decorator(csrf_exempt)
-    def dispatch(self, request, *args, **kwargs):
-        return super().dispatch(request, *args, **kwargs)
-
-    def get(self, request):
-
-        user_id = request.GET.get('id')
-
-        if user_id is None:
-            return self.get_whole_sleep_health(request)
-        else:
-            return self.get_personal_sleep_health(request, user_id)
-
-    @csrf_exempt
-    def post(self, request):
-
-        serialized_data = PSQISerializer(data=request.data)
-
-        if serialized_data.is_valid():
-
-            # instance = serialized_data.create(serialized_data.validated_data)
-
-            instance = SleepHealth(**serialized_data.validated_data)
-            input_data = [instance]
-            result = SleepHealthAPIView.evaluate_sleep_health(input_data)
-
-            keys_to_extract = ['sleep_quality_score', 'sleep_quality_status',
-                               'sleep_latency_score', 'sleep_latency_status',
-                               'sleep_duration_score', 'sleep_duration_status',
-                               'sleep_efficiency_score', 'sleep_efficiency_status',
-                               'sleep_disturbance_score', 'sleep_disturbance_status',
-                               'use_of_sleep_medication_score', 'use_of_sleep_medication_status',
-                               'daytime_dysfunction_score', 'daytime_dysfunction_status',
-                               'psqi_k', 'psqi_k_status']
-
-            sub_dict = {key: result[0][key] for key in keys_to_extract if key in result[0]}
-
-            return Response(sub_dict, status=status.HTTP_200_OK)
-
-        else:
-            print(serialized_data.errors)
-
-            return Response(serialized_data.errors, status=status.HTTP_400_BAD_REQUEST)
+class SleepHealthBaseView(APIView):
 
     @staticmethod
     def evaluate_sleep_health(records):
@@ -346,75 +277,59 @@ class SleepHealthAPIView(APIView):
 
         return result_list
 
-    @csrf_exempt
     def get_whole_sleep_health(self, request):
+        queryset = SleepHealth.objects.all()
+        result_list = self.evaluate_sleep_health(queryset)
+        return Response(result_list, status=status.HTTP_200_OK)
 
-        try:
-
-            queryset = SleepHealth.objects.all()
-            result_list = SleepHealthAPIView.evaluate_sleep_health(queryset)
-            return Response(result_list)
-
-        except SleepHealth.DoesNotExist:
-
-            raise NotFound("SleepHealth 데이터가 존재하지 않습니다.")
-
-    @csrf_exempt
     def get_personal_sleep_health(self, request, user_id):
+        # get_object_or_404를 사용하여 BasicInfo가 없으면 404 에러를 자동으로 반환
+        basic_info = get_object_or_404(BasicInfo, id=user_id)
+        queryset = basic_info.sleep_health_set.all()
+        result_list = self.evaluate_sleep_health(queryset)
+        return Response(result_list, status=status.HTTP_200_OK)
 
-        try:
-
-            basic_info = BasicInfo.objects.get(id=user_id)
-            queryset = basic_info.sleep_health_set.all()
-            result_list = SleepHealthAPIView.evaluate_sleep_health(queryset)
-            return Response(result_list)
-
-        except BasicInfo.DoesNotExist:
-
-            raise NotFound("BasicInfo 데이터가 존재하지 않습니다.")
-
-        except SleepHealth.DoesNotExist:
-
-            raise NotFound("SleepHealth 데이터가 존재하지 않습니다.")
-
-
-class GeneralHealthAPIView(APIView):
+class SleepHealthGetView(SleepHealthBaseView):
     renderer_classes = [JSONRenderer]
     permission_classes = []
 
-    @method_decorator(csrf_exempt)
-    def dispatch(self, request, *args, **kwargs):
-        return super().dispatch(request, *args, **kwargs)
+    # @method_decorator(csrf_exempt)
+    # def dispatch(self, request, *args, **kwargs):
+    #     return super().dispatch(request, *args, **kwargs)
 
     def get(self, request):
 
         user_id = request.GET.get('id')
 
         if user_id is None:
-            return self.get_whole_general_health(request)
+            return self.get_whole_sleep_health(request)
         else:
-            return self.get_personal_general_health(request, user_id)
+            return self.get_personal_sleep_health(request, user_id)
 
-    @csrf_exempt
+class PSQICalculateView(SleepHealthBaseView):
+    renderer_classes = [JSONRenderer]
+    permission_classes = []
+
     def post(self, request):
 
-        serialized_data = WHODASSerializer(data=request.data)
+        serialized_data = PSQISerializer(data=request.data)
 
         if serialized_data.is_valid():
 
             # instance = serialized_data.create(serialized_data.validated_data)
 
-            instance = GeneralHealth(**serialized_data.validated_data)
+            instance = SleepHealth(**serialized_data.validated_data)
             input_data = [instance]
-            result = GeneralHealthAPIView.evaluate_general_health(input_data)
+            result = self.evaluate_sleep_health(input_data)
 
-            keys_to_extract = ['cognition_score', 'cognition_status',
-                               'mobility_score', 'mobility_status',
-                               'self_care_score', 'self_care_status',
-                               'getting_along_score', 'getting_along_status',
-                               'life_activities_score', 'life_activities_status',
-                               'participation_score', 'participation_status',
-                               'whodas_k', 'whodas_k_status']
+            keys_to_extract = ['sleep_quality_score', 'sleep_quality_status',
+                               'sleep_latency_score', 'sleep_latency_status',
+                               'sleep_duration_score', 'sleep_duration_status',
+                               'sleep_efficiency_score', 'sleep_efficiency_status',
+                               'sleep_disturbance_score', 'sleep_disturbance_status',
+                               'use_of_sleep_medication_score', 'use_of_sleep_medication_status',
+                               'daytime_dysfunction_score', 'daytime_dysfunction_status',
+                               'psqi_k', 'psqi_k_status']
 
             sub_dict = {key: result[0][key] for key in keys_to_extract if key in result[0]}
 
@@ -424,6 +339,8 @@ class GeneralHealthAPIView(APIView):
             print(serialized_data.errors)
 
             return Response(serialized_data.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class GeneralHealthBaseView(APIView):
 
     @staticmethod
     def evaluate_general_health(records):
@@ -488,72 +405,58 @@ class GeneralHealthAPIView(APIView):
 
         return result_list
 
-    @csrf_exempt
     def get_whole_general_health(self, request):
+        queryset = self.objects.all()
+        result_list = self.evaluate_general_health(queryset)
+        return Response(result_list, status=status.HTTP_200_OK)
 
-        try:
-
-            queryset = GeneralHealth.objects.all()
-            result_list = GeneralHealthAPIView.evaluate_general_health(queryset)
-            return Response(result_list)
-
-        except GeneralHealth.DoesNotExist:
-
-            raise NotFound("GeneralHealth 데이터가 존재하지 않습니다.")
-
-    @csrf_exempt
     def get_personal_general_health(self, request, user_id):
+        # get_object_or_404를 사용하여 BasicInfo가 없으면 404 에러를 자동으로 반환
+        basic_info = get_object_or_404(BasicInfo, id=user_id)
+        queryset = basic_info.general_health_set.all()
+        result_list = self.evaluate_general_health(queryset)
+        return Response(result_list, status=status.HTTP_200_OK)
 
-        try:
-
-            basic_info = BasicInfo.objects.get(id=user_id)
-            queryset = basic_info.general_health_set.all()
-            result_list = GeneralHealthAPIView.evaluate_general_health(queryset)
-            return Response(result_list)
-
-        except BasicInfo.DoesNotExist:
-
-            raise NotFound("BasicInfo 데이터가 존재하지 않습니다.")
-
-        except GeneralHealth.DoesNotExist:
-
-            raise NotFound("GeneralHealth 데이터가 존재하지 않습니다.")
-
-
-class EmotionAPIView(APIView):
+class GeneralHealthGetView(GeneralHealthBaseView):
     renderer_classes = [JSONRenderer]
     permission_classes = []
 
-    @method_decorator(csrf_exempt)
-    def dispatch(self, request, *args, **kwargs):
-        return super().dispatch(request, *args, **kwargs)
+    # @method_decorator(csrf_exempt)
+    # def dispatch(self, request, *args, **kwargs):
+    #     return super().dispatch(request, *args, **kwargs)
 
     def get(self, request):
 
         user_id = request.GET.get('id')
 
         if user_id is None:
-            return self.get_whole_emotion(request)
+            return self.get_whole_general_health(request)
         else:
-            return self.get_personal_emotion(request, user_id)
+            return self.get_personal_general_health(request, user_id)
 
-    @csrf_exempt
+class WHODASCalculateView(GeneralHealthBaseView):
+    renderer_classes = [JSONRenderer]
+    permission_classes = []
+
     def post(self, request):
 
-        serialized_data = DASS21Serializer(data=request.data)
+        serialized_data = WHODASSerializer(data=request.data)
 
         if serialized_data.is_valid():
 
             # instance = serialized_data.create(serialized_data.validated_data)
 
-            instance = Emotion(**serialized_data.validated_data)
+            instance = GeneralHealth(**serialized_data.validated_data)
             input_data = [instance]
-            result = EmotionAPIView.evaluate_emotion(input_data)
+            result = self.evaluate_general_health(input_data)
 
-            keys_to_extract = ['depression_score', 'depression_status',
-                               'anxiety_score', 'anxiety_status',
-                               'stress_score', 'stress_status',
-                               'dass', 'dass_status']
+            keys_to_extract = ['cognition_score', 'cognition_status',
+                               'mobility_score', 'mobility_status',
+                               'self_care_score', 'self_care_status',
+                               'getting_along_score', 'getting_along_status',
+                               'life_activities_score', 'life_activities_status',
+                               'participation_score', 'participation_status',
+                               'whodas_k', 'whodas_k_status']
 
             sub_dict = {key: result[0][key] for key in keys_to_extract if key in result[0]}
 
@@ -563,6 +466,8 @@ class EmotionAPIView(APIView):
             print(serialized_data.errors)
 
             return Response(serialized_data.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class EmotionBaseView(APIView):
 
     @staticmethod
     def evaluate_emotion(records):
@@ -632,72 +537,55 @@ class EmotionAPIView(APIView):
 
         return result_list
 
-    @csrf_exempt
     def get_whole_emotion(self, request):
+        queryset = Emotion.objects.all()
+        result_list = self.evaluate_emotion(queryset)
+        return Response(result_list, status=status.HTTP_200_OK)
 
-        try:
-
-            queryset = Emotion.objects.all()
-            result_list = EmotionAPIView.evaluate_emotion(queryset)
-            return Response(result_list)
-
-        except Emotion.DoesNotExist:
-
-            raise NotFound("Emotion 데이터가 존재하지 않습니다.")
-
-    @csrf_exempt
     def get_personal_emotion(self, request, user_id):
+        # get_object_or_404를 사용하여 BasicInfo가 없으면 404 에러를 자동으로 반환
+        basic_info = get_object_or_404(BasicInfo, id=user_id)
+        queryset = basic_info.emotion_set.all()
+        result_list = self.evaluate_emotion(queryset)
+        return Response(result_list, status=status.HTTP_200_OK)
 
-        try:
-
-            basic_info = BasicInfo.objects.get(id=user_id)
-            queryset = basic_info.emotion_set.all()
-            result_list = EmotionAPIView.evaluate_emotion(queryset)
-            return Response(result_list)
-
-        except BasicInfo.DoesNotExist:
-
-            raise NotFound("BasicInfo 데이터가 존재하지 않습니다.")
-
-        except Emotion.DoesNotExist:
-
-            raise NotFound("Emotion 데이터가 존재하지 않습니다.")
-
-
-class LonelinessAPIView(APIView):
+class EmotionGetView(EmotionBaseView):
     renderer_classes = [JSONRenderer]
     permission_classes = []
 
-    @method_decorator(csrf_exempt)
-    def dispatch(self, request, *args, **kwargs):
-        return super().dispatch(request, *args, **kwargs)
+    # @method_decorator(csrf_exempt)
+    # def dispatch(self, request, *args, **kwargs):
+    #     return super().dispatch(request, *args, **kwargs)
 
     def get(self, request):
 
         user_id = request.GET.get('id')
 
         if user_id is None:
-            return self.get_whole_loneliness(request)
+            return self.get_whole_emotion(request)
         else:
-            return self.get_personal_loneliness(request, user_id)
+            return self.get_personal_emotion(request, user_id)
 
-    @csrf_exempt
+class DASS21CalculateView(EmotionBaseView):
+    renderer_classes = [JSONRenderer]
+    permission_classes = []
+
     def post(self, request):
 
-        serialized_data = LSISSerializer(data=request.data)
+        serialized_data = DASS21Serializer(data=request.data)
 
         if serialized_data.is_valid():
 
             # instance = serialized_data.create(serialized_data.validated_data)
 
-            instance = Loneliness(**serialized_data.validated_data)
+            instance = Emotion(**serialized_data.validated_data)
             input_data = [instance]
-            result = LonelinessAPIView.evaluate_loneliness(input_data)
+            result = self.evaluate_emotion(input_data)
 
-            keys_to_extract = ['loneliness_score', 'loneliness_status',
-                               'social_support_score', 'social_support_status',
-                               'social_network_score', 'social_network_status',
-                               'lsis', 'lsis_status']
+            keys_to_extract = ['depression_score', 'depression_status',
+                               'anxiety_score', 'anxiety_status',
+                               'stress_score', 'stress_status',
+                               'dass', 'dass_status']
 
             sub_dict = {key: result[0][key] for key in keys_to_extract if key in result[0]}
 
@@ -707,6 +595,8 @@ class LonelinessAPIView(APIView):
             print(serialized_data.errors)
 
             return Response(serialized_data.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class LonelinessBaseView(APIView):
 
     @staticmethod
     def evaluate_loneliness(records):
@@ -761,45 +651,72 @@ class LonelinessAPIView(APIView):
 
         return result_list
 
-    @csrf_exempt
     def get_whole_loneliness(self, request):
+        queryset = Loneliness.objects.all()
+        result_list = self.evaluate_loneliness(queryset)
+        return Response(result_list, status=status.HTTP_200_OK)
 
-        try:
-
-            queryset = Loneliness.objects.all()
-            result_list = LonelinessAPIView.evaluate_loneliness(queryset)
-            return Response(result_list)
-
-        except Loneliness.DoesNotExist:
-
-            raise NotFound("Loneliness 데이터가 존재하지 않습니다.")
-
-    @csrf_exempt
     def get_personal_loneliness(self, request, user_id):
+        # get_object_or_404를 사용하여 BasicInfo가 없으면 404 에러를 자동으로 반환
+        basic_info = get_object_or_404(BasicInfo, id=user_id)
+        queryset = basic_info.loneliness_set.all()
+        result_list = self.evaluate_loneliness(queryset)
+        return Response(result_list)
 
-        try:
-
-            basic_info = BasicInfo.objects.get(id=user_id)
-            queryset = basic_info.loneliness_set.all()
-            result_list = LonelinessAPIView.evaluate_loneliness(queryset)
-            return Response(result_list)
-
-        except BasicInfo.DoesNotExist:
-
-            raise NotFound("BasicInfo 데이터가 존재하지 않습니다.")
-
-        except Loneliness.DoesNotExist:
-
-            raise NotFound("Loneliness 데이터가 존재하지 않습니다.")
-
-
-class WholeSurveysAPIView(APIView):
+class LonelinessGetView(LonelinessBaseView):
     renderer_classes = [JSONRenderer]
     permission_classes = []
 
-    @method_decorator(csrf_exempt)
-    def dispatch(self, request, *args, **kwargs):
-        return super().dispatch(request, *args, **kwargs)
+    # @method_decorator(csrf_exempt)
+    # def dispatch(self, request, *args, **kwargs):
+    #     return super().dispatch(request, *args, **kwargs)
+
+    def get(self, request):
+
+        user_id = request.GET.get('id')
+
+        if user_id is None:
+            return self.get_whole_loneliness(request)
+        else:
+            return self.get_personal_loneliness(request, user_id)
+
+class LSISCalculateView(LonelinessBaseView):
+    renderer_classes = [JSONRenderer]
+    permission_classes = []
+
+    def post(self, request):
+
+        serialized_data = LSISSerializer(data=request.data)
+
+        if serialized_data.is_valid():
+
+            # instance = serialized_data.create(serialized_data.validated_data)
+
+            instance = Loneliness(**serialized_data.validated_data)
+            input_data = [instance]
+            result = self.evaluate_loneliness(input_data)
+
+            keys_to_extract = ['loneliness_score', 'loneliness_status',
+                               'social_support_score', 'social_support_status',
+                               'social_network_score', 'social_network_status',
+                               'lsis', 'lsis_status']
+
+            sub_dict = {key: result[0][key] for key in keys_to_extract if key in result[0]}
+
+            return Response(sub_dict, status=status.HTTP_200_OK)
+
+        else:
+            print(serialized_data.errors)
+
+            return Response(serialized_data.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class WholeSurveysCalculateView(APIView):
+    renderer_classes = [JSONRenderer]
+    permission_classes = []
+
+    # @method_decorator(csrf_exempt)
+    # def dispatch(self, request, *args, **kwargs):
+    #     return super().dispatch(request, *args, **kwargs)
 
     @staticmethod
     def evaluate_surveys_from_data(validated_data):
@@ -818,7 +735,7 @@ class WholeSurveysAPIView(APIView):
         # 각 설문 데이터로 모델 인스턴스 생성 및 평가
         if PSQI_data:
             psqi_instance = SleepHealth(**PSQI_data)
-            psqi_result = SleepHealthAPIView.evaluate_sleep_health([psqi_instance])[0]
+            psqi_result = SleepHealthBaseView.evaluate_sleep_health([psqi_instance])[0]
             keys_to_extract = ['sleep_quality_score', 'sleep_quality_status',
                                'sleep_latency_score', 'sleep_latency_status',
                                'sleep_duration_score', 'sleep_duration_status',
@@ -831,7 +748,7 @@ class WholeSurveysAPIView(APIView):
 
         if WHODAS_data:
             whodas_instance = GeneralHealth(**WHODAS_data)
-            whodas_result = GeneralHealthAPIView.evaluate_general_health([whodas_instance])[0]
+            whodas_result = GeneralHealthBaseView.evaluate_general_health([whodas_instance])[0]
             keys_to_extract = ['cognition_score', 'cognition_status',
                                'mobility_score', 'mobility_status',
                                'self_care_score', 'self_care_status',
@@ -843,7 +760,7 @@ class WholeSurveysAPIView(APIView):
 
         if DASS21_data:
             dass_instance = Emotion(**DASS21_data)
-            dass_result = EmotionAPIView.evaluate_emotion([dass_instance])[0]
+            dass_result = EmotionBaseView.evaluate_emotion([dass_instance])[0]
             keys_to_extract = ['depression_score', 'depression_status',
                                'anxiety_score', 'anxiety_status',
                                'stress_score', 'stress_status',
@@ -852,7 +769,7 @@ class WholeSurveysAPIView(APIView):
 
         if LSIS_data:
             lsis_instance = Loneliness(**LSIS_data)
-            lsis_result = LonelinessAPIView.evaluate_loneliness([lsis_instance])[0]
+            lsis_result = LonelinessBaseView.evaluate_loneliness([lsis_instance])[0]
             keys_to_extract = ['loneliness_score', 'loneliness_status',
                                'social_support_score', 'social_support_status',
                                'social_network_score', 'social_network_status',
@@ -861,14 +778,13 @@ class WholeSurveysAPIView(APIView):
 
         return sub_dict1 | sub_dict2 | sub_dict3 | sub_dict4
 
-    @csrf_exempt
     def post(self, request):
         serializer = WholeScoresSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            merged_dict = WholeSurveysAPIView.evaluate_surveys_from_data(serializer.validated_data)
+            merged_dict = self.evaluate_surveys_from_data(serializer.validated_data)
             return Response(merged_dict, status=status.HTTP_200_OK)
         except Exception as e:
             return Response(
@@ -881,9 +797,9 @@ class ReportAPIView(APIView):
     renderer_classes = [JSONRenderer]
     permission_classes = []
 
-    @method_decorator(csrf_exempt)
-    def dispatch(self, request, *args, **kwargs):
-        return super().dispatch(request, *args, **kwargs)
+    # @method_decorator(csrf_exempt)
+    # def dispatch(self, request, *args, **kwargs):
+    #     return super().dispatch(request, *args, **kwargs)
 
     @staticmethod
     def _extract_evaluation_results(context: dict) -> dict:
@@ -922,7 +838,6 @@ class ReportAPIView(APIView):
         
         return results
 
-    @csrf_exempt
     def get(self, request):
         user_id = request.query_params.get('id')
         mode = request.query_params.get('mode', 'context') # Default to 'context'
@@ -956,7 +871,6 @@ class ReportAPIView(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
-    @csrf_exempt
     def post(self, request):
         mode = request.query_params.get('mode', 'context')
         html_option = request.query_params.get('html', 'false').lower() == 'true'
@@ -1507,7 +1421,6 @@ class ReportAPIView(APIView):
                 "status": social_support_status,
                 "percent": round(social_support_score / 6 * 100, 2),
                 "rev_percent": 100 - round(social_support_score / 6 * 100, 2),
-                "status": social_support_status,
             },
             {
                 "label": "사회적 관계망",
@@ -1533,10 +1446,10 @@ class ReportAPIView(APIView):
         lsis_latest_record = Loneliness.objects.filter(participant_id=user_id).order_by('-id').first()
 
         # 결과 평가
-        psqi_result = SleepHealthAPIView.evaluate_sleep_health([psqi_latest_record])[0] if psqi_latest_record else {}
-        whodas_result = GeneralHealthAPIView.evaluate_general_health([whodas_latest_record])[0] if whodas_latest_record else {}
-        dass_result = EmotionAPIView.evaluate_emotion([dass_latest_record])[0] if dass_latest_record else {}
-        lsis_result = LonelinessAPIView.evaluate_loneliness([lsis_latest_record])[0] if lsis_latest_record else {}
+        psqi_result = SleepHealthBaseView.evaluate_sleep_health([psqi_latest_record])[0] if psqi_latest_record else {}
+        whodas_result = GeneralHealthBaseView.evaluate_general_health([whodas_latest_record])[0] if whodas_latest_record else {}
+        dass_result = EmotionBaseView.evaluate_emotion([dass_latest_record])[0] if dass_latest_record else {}
+        lsis_result = LonelinessBaseView.evaluate_loneliness([lsis_latest_record])[0] if lsis_latest_record else {}
 
         return ReportAPIView._build_context_from_evaluated_results(psqi_result, whodas_result, dass_result, lsis_result, name)
 
@@ -1561,10 +1474,10 @@ class ReportAPIView(APIView):
         lsis_instance = Loneliness(**LSIS_data) if LSIS_data else None
         
         # 결과 평가
-        psqi_result = SleepHealthAPIView.evaluate_sleep_health([psqi_instance])[0] if psqi_instance else {}
-        whodas_result = GeneralHealthAPIView.evaluate_general_health([whodas_instance])[0] if whodas_instance else {}
-        dass_result = EmotionAPIView.evaluate_emotion([dass_instance])[0] if dass_instance else {}
-        lsis_result = LonelinessAPIView.evaluate_loneliness([lsis_instance])[0] if lsis_instance else {}
+        psqi_result = SleepHealthBaseView.evaluate_sleep_health([psqi_instance])[0] if psqi_instance else {}
+        whodas_result = GeneralHealthBaseView.evaluate_general_health([whodas_instance])[0] if whodas_instance else {}
+        dass_result = EmotionBaseView.evaluate_emotion([dass_instance])[0] if dass_instance else {}
+        lsis_result = LonelinessBaseView.evaluate_loneliness([lsis_instance])[0] if lsis_instance else {}
         
         return ReportAPIView._build_context_from_evaluated_results(psqi_result, whodas_result, dass_result, lsis_result, name)
 
