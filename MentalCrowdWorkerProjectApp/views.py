@@ -1493,9 +1493,15 @@ class ReportAPIView(APIView):
         context = ReportAPIView.build_report_context_from_id(user_id)
         html_string = render_to_string('report_template.html', context)
 
-        # static 경로 수동 치환
-        static_root = settings.STATIC_ROOT.replace('\\', '/')
-        html_string = html_string.replace('/static/', f'file:///{static_root}/')
+        # settings.py의 DEBUG 값에 따라 경로를 다르게 설정
+        if settings.DEBUG:
+            # DEBUG=True (개발 환경)일 경우: 실제 파일이 있는 STATICFILES_DIRS[0] 경로를 사용
+            static_path = str(settings.STATICFILES_DIRS[0]).replace('\\', '/')
+            html_string = html_string.replace('/static/', f'file:///{static_path}/')
+        else:
+            # DEBUG=False (배포 환경)일 경우: collectstatic으로 파일이 모여있는 STATIC_ROOT 경로를 사용
+            static_path = str(settings.STATIC_ROOT).replace('\\', '/')
+            html_string = html_string.replace('/static/', f'file:///{static_path}/')
 
         # 1. 저장 경로 설정
         os.makedirs(pdf_path, exist_ok=True)
@@ -1540,9 +1546,15 @@ class ReportAPIView(APIView):
         context = ReportAPIView.build_report_context_from_data(validated_data)
         html_string = render_to_string('report_template.html', context)
 
-        # static 경로 수동 치환
-        static_root = settings.STATIC_ROOT.replace('\\', '/')
-        html_string = html_string.replace('/static/', f'file:///{static_root}/')
+        # settings.py의 DEBUG 값에 따라 경로를 다르게 설정
+        if settings.DEBUG:
+            # DEBUG=True (개발 환경)일 경우: 실제 파일이 있는 STATICFILES_DIRS[0] 경로를 사용
+            static_path = str(settings.STATICFILES_DIRS[0]).replace('\\', '/')
+            html_string = html_string.replace('/static/', f'file:///{static_path}/')
+        else:
+            # DEBUG=False (배포 환경)일 경우: collectstatic으로 파일이 모여있는 STATIC_ROOT 경로를 사용
+            static_path = str(settings.STATIC_ROOT).replace('\\', '/')
+            html_string = html_string.replace('/static/', f'file:///{static_path}/')
 
         # 1. 저장 경로 설정
         os.makedirs(pdf_path, exist_ok=True)
