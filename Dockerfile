@@ -6,13 +6,14 @@ WORKDIR /app
 
 # 시스템 패키지 업데이트 및 필요한 패키지 설치
 RUN apt-get update && apt-get install -y \
-    default-mysql-client \
-    default-libmysqlclient-dev \
     pkg-config \
     gcc \
     g++ \
     wget \
     gnupg \
+    fonts-noto-cjk \
+    fontconfig \
+    --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Playwright 브라우저 설치
@@ -43,4 +44,4 @@ ENV PYTHONPATH=/app
 ENV DJANGO_SETTINGS_MODULE=MentalCrowdWorkerProject.settings
 
 # 실행 명령
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8001"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8001", "MentalCrowdWorkerProject.wsgi"]
