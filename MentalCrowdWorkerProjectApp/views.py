@@ -1113,6 +1113,18 @@ class ReportAPIView(APIView):
         life_activities_score = whodas_result.get('life_activities_score', 0)
         participation_score = whodas_result.get('participation_score', 0)
 
+        # 다른 점수들과는 다르게 WHODAS_K는 소수점이 나오는 점수로, 원래 점수 산출 과정 뿐만 아니라 DB 내의 대상자들에 대해서도 소수점 2째 자리까지 반올림처리 했었음
+        # 하지만 그래프 표기 상에서 소수점 첫 째자리까지만 나오면서도, 소수점 아래가 0만 있으면 정수 표기 해달라는 요청이 왔음
+        # 원래 전술 산출 코드에서 반올림 자리수를 바꾸고, 소수점 아래가 0만 있으면 정수처리를 하게 되면 기존 DB에서의 필드 타입과 충돌이 예상됨
+        # 이에, 그래프 바에서만 표기되는 변수를 새로 만들어서 컨텍스트에 빌드 (2025/08/20)
+        result_score_for_bar = round(100 * (cognition_score + mobility_score + self_care_score +
+            getting_along_score + life_activities_score + participation_score)/48, 1)
+
+        if result_score_for_bar.is_integer():
+            whodas_k_for_bar = int(result_score_for_bar)
+        else:
+            whodas_k_for_bar = result_score_for_bar
+
         # 일반 건강 세부 상태
         cognition_status = whodas_result.get('cognition_status', '')
         mobility_status = whodas_result.get('mobility_status', '')
@@ -1147,6 +1159,7 @@ class ReportAPIView(APIView):
             'psqi_k_percent': psqi_k_percent,
             'psqi_k_status': psqi_k_status,
             'whodas_k': whodas_k,
+            'whodas_k_for_bar': whodas_k_for_bar,
             'whodas_k_percent': whodas_k_percent,
             'whodas_k_status': whodas_k_status,
             'dass': dass,
@@ -1171,7 +1184,7 @@ class ReportAPIView(APIView):
             'psqi_bar_description': ReportAPIView.load_description('contents/descriptions/psqi_bar_description.txt',
                                                                    score=psqi_k, score_status=psqi_k_status),
             'whodas_bar_description': ReportAPIView.load_description('contents/descriptions/whodas_bar_description.txt',
-                                                                     score=whodas_k, score_status=whodas_k_status),
+                                                                     score=whodas_k_for_bar, score_status=whodas_k_status),
             'dass_bar_description': ReportAPIView.load_description('contents/descriptions/dass_bar_description.txt',
                                                                    score=dass, score_status=dass_status),
             'lsis_bar_description': ReportAPIView.load_description('contents/descriptions/lsis_bar_description.txt',
