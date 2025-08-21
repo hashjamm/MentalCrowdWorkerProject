@@ -370,7 +370,7 @@ class GeneralHealthBaseView(APIView):
             c5 = one_record.result_2 + one_record.result_12
             c6 = one_record.result_4 + one_record.result_5
 
-            whodas_k = round(100 * (c1 + c2 + c3 + c4 + c5 + c6) / 48, 2)
+            whodas_k = round(100 * (c1 + c2 + c3 + c4 + c5 + c6) / 48, 1)
 
             whodas_k_status = "매우 양호한 상태" if whodas_k < 18 \
                 else "건강기능에 주의가 필요한 상태" if whodas_k < 31 \
@@ -1117,13 +1117,15 @@ class ReportAPIView(APIView):
         # 하지만 그래프 표기 상에서 소수점 첫 째자리까지만 나오면서도, 소수점 아래가 0만 있으면 정수 표기 해달라는 요청이 왔음
         # 원래 전술 산출 코드에서 반올림 자리수를 바꾸고, 소수점 아래가 0만 있으면 정수처리를 하게 되면 기존 DB에서의 필드 타입과 충돌이 예상됨
         # 이에, 그래프 바에서만 표기되는 변수를 새로 만들어서 컨텍스트에 빌드 (2025/08/20)
-        result_score_for_bar = round(100 * (cognition_score + mobility_score + self_care_score +
-            getting_along_score + life_activities_score + participation_score)/48, 1)
 
-        if result_score_for_bar.is_integer():
-            whodas_k_for_bar = int(result_score_for_bar)
+        # 근데 그냥 whodas_k 랑 whodas_k_for_bar랑 일치시켜달라고 요청이 옴.
+        # 뭔가 표기만 한자리까지만 한 것을 이해시키기 어려운 상황이라 그냥 맞추는 것으로 합의 
+        # whodas_k를 원천적으로 소수점 아래 한자리까지 반올림하는 것으로 수정 (2025/08/21)
+
+        if whodas_k.is_integer():
+            whodas_k_for_bar = int(whodas_k)
         else:
-            whodas_k_for_bar = result_score_for_bar
+            whodas_k_for_bar = whodas_k
 
         # 일반 건강 세부 상태
         cognition_status = whodas_result.get('cognition_status', '')
